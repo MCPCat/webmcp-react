@@ -1,0 +1,47 @@
+{
+  "name": "webmcp-react",
+  "version": "0.0.1",
+  "description": "React hooks for exposing your app's functionality as WebMCP tools - transport-agnostic, SSR-safe, Strict Mode safe, W3C spec-aligned",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "keywords": [
+    "webmcp",
+    "mcp",
+    "model-context-protocol",
+    "react",
+    "hooks",
+    "ai",
+    "navigator.modelContext",
+    "w3c"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCPCat/webmcp-react.git"
+  },
+  "homepage": "https://github.com/MCPCat/webmcp-react",
+  "bugs": {
+    "url": "https://github.com/MCPCat/webmcp-react/issues"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "echo \"Add build script\"",
+    "test": "echo \"Add test script\""
+  }
+}
