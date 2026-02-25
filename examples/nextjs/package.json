@@ -1,0 +1,21 @@
+{
+  "name": "webmcp-react-nextjs-example",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3099",
+    "build": "next build"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "webmcp-react": "workspace:*",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "25.3.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

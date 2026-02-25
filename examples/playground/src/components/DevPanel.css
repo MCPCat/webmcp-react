@@ -1,0 +1,251 @@
+.devpanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  height: 100vh;
+  background: #111;
+  border-left: 1px solid #2a2a2a;
+  overflow-y: auto;
+  font-size: 0.8125rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.devpanel-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.devpanel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.devpanel-header h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.devpanel-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.devpanel-header-actions button {
+  background: none;
+  border: 1px solid #333;
+  color: #888;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.devpanel-tools,
+.devpanel-execute,
+.devpanel-results {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.devpanel-tools h4,
+.devpanel-execute h4,
+.devpanel-results-header h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.devpanel-empty {
+  color: #555;
+  font-style: italic;
+}
+
+.devpanel-tool-list {
+  list-style: none;
+}
+
+.devpanel-tool-list li {
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.devpanel-tool-list li:hover {
+  background: #1a1a1a;
+}
+
+.devpanel-tool-list li.selected {
+  background: #1a1a2e;
+}
+
+.devpanel-tool-list li strong {
+  font-size: 0.8125rem;
+}
+
+.devpanel-tool-list li span {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.devpanel-desc {
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+.devpanel-execute details {
+  margin-bottom: 0.5rem;
+}
+
+.devpanel-execute summary {
+  font-size: 0.75rem;
+  color: #666;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+}
+
+.devpanel-execute pre {
+  background: #0a0a0a;
+  padding: 0.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.devpanel-input {
+  margin-bottom: 0.5rem;
+}
+
+.devpanel-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.devpanel-input-header label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.devpanel-input-header button {
+  background: none;
+  border: 1px solid #333;
+  color: #888;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.devpanel-input textarea {
+  width: 100%;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  resize: vertical;
+}
+
+.devpanel-run {
+  width: 100%;
+  padding: 0.5rem;
+  background: #1a3a5c;
+  color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.devpanel-run:hover:not(:disabled) {
+  background: #1e4a70;
+}
+
+.devpanel-run:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.devpanel-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.devpanel-results-header button {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.devpanel-result {
+  margin-top: 0.5rem;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.devpanel-result.success {
+  border-left: 2px solid #2d6a4f;
+}
+
+.devpanel-result.error {
+  border-left: 2px solid #9b2c2c;
+}
+
+.devpanel-result-meta {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+}
+
+.devpanel-result-tool {
+  color: #888;
+  font-weight: 500;
+}
+
+.devpanel-result-time {
+  color: #555;
+}
+
+.devpanel-result summary {
+  font-size: 0.75rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.devpanel-result pre {
+  background: #0a0a0a;
+  padding: 0.5rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  overflow-x: auto;
+  margin: 0.25rem 0.5rem 0.5rem;
+  border-radius: 3px;
+}
