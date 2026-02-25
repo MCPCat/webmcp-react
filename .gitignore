@@ -5,3 +5,8 @@ dist/
 .DS_Store
 .mcp.json
 .claude/
+CLAUDE.md
+.reference
+examples/*/node_modules/
+examples/*/dist/
+examples/nextjs/.next/

@@ -2,14 +2,15 @@
   "name": "webmcp-react",
   "version": "0.0.1",
   "description": "React hooks for exposing your app's functionality as WebMCP tools - transport-agnostic, SSR-safe, Strict Mode safe, W3C spec-aligned",
+  "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
@@ -36,12 +37,41 @@
   "bugs": {
     "url": "https://github.com/MCPCat/webmcp-react/issues"
   },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "dev:playground": "pnpm --filter webmcp-react-playground dev",
+    "dev:nextjs": "pnpm --filter webmcp-react-nextjs-example dev"
+  },
   "peerDependencies": {
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "zod": ">=3.0.0"
   },
-  "scripts": {
-    "build": "echo \"Add build script\"",
-    "test": "echo \"Add test script\""
+  "dependencies": {
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^26.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "zod": "^3.24.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
