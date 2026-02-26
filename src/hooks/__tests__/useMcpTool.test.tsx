@@ -265,6 +265,185 @@ describe("registration lifecycle", () => {
     expect(tools[0].description).toBe("Say hello v2");
   });
 
+  it("re-registers when Zod input schema value changes", async () => {
+    const { rerender } = render(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            input: z.object({ name: z.string() }),
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await waitForRegistration();
+
+    const mc = navigator.modelContext;
+    expect(mc).toBeDefined();
+    const spy = vi.spyOn(mc as NonNullable<typeof mc>, "registerTool");
+
+    rerender(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            input: z.object({ name: z.string(), age: z.number() }),
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalled();
+    });
+
+    const tools = navigator.modelContextTesting?.listTools() ?? [];
+    expect(tools).toHaveLength(1);
+    const schema = JSON.parse(tools[0].inputSchema ?? "{}");
+    expect(schema.properties.age).toBeDefined();
+  });
+
+  it("re-registers when JSON inputSchema value changes", async () => {
+    const { rerender } = render(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            inputSchema: {
+              type: "object",
+              properties: { name: { type: "string" } },
+            },
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await waitForRegistration();
+
+    const mc = navigator.modelContext;
+    expect(mc).toBeDefined();
+    const spy = vi.spyOn(mc as NonNullable<typeof mc>, "registerTool");
+
+    rerender(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            inputSchema: {
+              type: "object",
+              properties: { name: { type: "string" }, age: { type: "number" } },
+            },
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalled();
+    });
+
+    const tools = navigator.modelContextTesting?.listTools() ?? [];
+    expect(tools).toHaveLength(1);
+    const schema = JSON.parse(tools[0].inputSchema ?? "{}");
+    expect(schema.properties.age).toBeDefined();
+  });
+
+  it("does NOT re-register when Zod schema reference changes but shape is identical", async () => {
+    const schema1 = z.object({ name: z.string() });
+
+    const { rerender } = render(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            input: schema1,
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await waitForRegistration();
+
+    const mc = navigator.modelContext;
+    expect(mc).toBeDefined();
+    const spy = vi.spyOn(mc as NonNullable<typeof mc>, "registerTool");
+
+    const schema2 = z.object({ name: z.string() });
+    expect(schema1).not.toBe(schema2);
+
+    rerender(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            input: schema2,
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await act(async () => {});
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("does NOT re-register when JSON Schema reference changes but value is identical", async () => {
+    const { rerender } = render(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            inputSchema: {
+              type: "object",
+              properties: { name: { type: "string" } },
+            },
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await waitForRegistration();
+
+    const mc = navigator.modelContext;
+    expect(mc).toBeDefined();
+    const spy = vi.spyOn(mc as NonNullable<typeof mc>, "registerTool");
+
+    rerender(
+      <WebMCPProvider name="test" version="1.0">
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            inputSchema: {
+              type: "object",
+              properties: { name: { type: "string" } },
+            },
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </WebMCPProvider>,
+    );
+
+    await act(async () => {});
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   it("does NOT re-register when handler changes", async () => {
     const { rerender } = render(
       <WebMCPProvider name="test" version="1.0">
@@ -335,6 +514,36 @@ describe("Strict Mode safety", () => {
     const tools = navigator.modelContextTesting?.listTools() ?? [];
     expect(tools).toHaveLength(1);
     expect(tools[0].name).toBe("greet");
+  });
+
+  it("tool is callable via executeTool after Strict Mode double-mount", async () => {
+    render(
+      <StrictMode>
+        <WebMCPProvider name="test" version="1.0">
+          <ToolComponent
+            config={{
+              name: "greet",
+              description: "Say hello",
+              input: z.object({ name: z.string() }),
+              handler: async ({ name }) => makeResult(`hello ${name}`),
+            }}
+          />
+        </WebMCPProvider>
+      </StrictMode>,
+    );
+
+    await waitForRegistration();
+
+    let resultJson: string | null | undefined;
+    await act(async () => {
+      resultJson = await navigator.modelContextTesting?.executeTool(
+        "greet",
+        JSON.stringify({ name: "world" }),
+      );
+    });
+
+    const result = JSON.parse(resultJson ?? "null");
+    expect(result.content[0].text).toBe("hello world");
   });
 
   it("tool unregistered on real unmount in Strict Mode", async () => {
@@ -475,6 +684,36 @@ describe("execution state", () => {
     expect(caughtError?.message).toBe("handler failed");
 
     expect(document.querySelector("[data-testid='error']")?.textContent).toBe("handler failed");
+  });
+
+  it("executionCount does NOT increment on handler failure", async () => {
+    const executeRef = { current: null } as React.MutableRefObject<ExecuteFn | null>;
+
+    renderWithProvider(
+      <ToolComponent
+        config={{
+          name: "greet",
+          description: "Say hello",
+          handler: async () => {
+            throw new Error("fail");
+          },
+        }}
+        onExecuteRef={executeRef}
+      />,
+    );
+
+    await waitForRegistration();
+
+    await act(async () => {
+      try {
+        await executeRef.current?.();
+      } catch {
+        // expected
+      }
+    });
+
+    expect(document.querySelector("[data-testid='count']")?.textContent).toBe("0");
+    expect(document.querySelector("[data-testid='error']")?.textContent).toBe("fail");
   });
 
   it("sets error state on Zod validation error and re-throws", async () => {
@@ -678,6 +917,8 @@ describe("MCP integration", () => {
     const result = JSON.parse(resultJson ?? "null");
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Error: boom");
+
+    expect(document.querySelector("[data-testid='count']")?.textContent).toBe("0");
   });
 
   it("latest handler is always called via ref", async () => {
