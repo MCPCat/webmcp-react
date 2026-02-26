@@ -1,20 +1,7 @@
-/**
- * WebMCP type definitions.
- *
- * Commonly-used types are re-exported from the main "webmcp-react" entry.
- * All types are available via the "webmcp-react/types" subpath:
- *
- *   import type { ToolDescriptor } from "webmcp-react/types";
- */
-
 import type { ReactNode } from "react";
 import type { z } from "zod";
 
-// ─── Utility Types ────────────────────────────────────────────────
-
 export type MaybePromise<T> = T | Promise<T>;
-
-// ─── JSON Schema Types ───────────────────────────────────────────
 
 export interface InputSchemaProperty {
   type: string;
@@ -28,8 +15,6 @@ export interface InputSchema {
   required?: readonly string[];
   [key: string]: unknown;
 }
-
-// ─── Content Block Types ──────────────────────────────────────────
 
 export interface TextContent {
   type: "text";
@@ -71,15 +56,11 @@ export interface ResourceLink {
 
 export type ContentBlock = TextContent | ImageContent | EmbeddedResource | ResourceLink;
 
-// ─── Call Tool Result ─────────────────────────────────────────────
-
 export interface CallToolResult {
   content: ContentBlock[];
   structuredContent?: Record<string, unknown>;
   isError?: boolean;
 }
-
-// ─── Tool Annotations ─────────────────────────────────────────────
 
 export interface ToolAnnotations {
   title?: string;
@@ -89,13 +70,9 @@ export interface ToolAnnotations {
   openWorldHint?: boolean;
 }
 
-// ─── Model Context Client ─────────────────────────────────────────
-
 export interface ModelContextClient {
   requestUserInteraction(callback: () => Promise<unknown>): Promise<unknown>;
 }
-
-// ─── Tool Descriptor ──────────────────────────────────────────────
 
 export interface ToolDescriptor<TArgs = Record<string, unknown>> {
   name: string;
@@ -105,8 +82,6 @@ export interface ToolDescriptor<TArgs = Record<string, unknown>> {
   annotations?: ToolAnnotations;
   execute: (args: TArgs, client: ModelContextClient) => MaybePromise<CallToolResult>;
 }
-
-// ─── Hook Config Types ────────────────────────────────────────────
 
 interface McpToolConfigBase {
   name: string;
@@ -138,8 +113,6 @@ export interface McpToolConfigJsonSchema extends McpToolConfigBase {
   ) => MaybePromise<CallToolResult>;
 }
 
-// ─── Hook Return Types ────────────────────────────────────────────
-
 export interface ToolExecutionState<TResult = CallToolResult> {
   isExecuting: boolean;
   lastResult: TResult | null;
@@ -153,8 +126,6 @@ export interface UseMcpToolReturn<TResult = CallToolResult> {
   reset: () => void;
 }
 
-// ─── Provider Types ───────────────────────────────────────────────
-
 export interface WebMCPProviderProps {
   name: string;
   version: string;
@@ -164,8 +135,6 @@ export interface WebMCPProviderProps {
 export interface WebMCPStatus {
   available: boolean;
 }
-
-// ─── Navigator API Types ──────────────────────────────────────────
 
 export interface ModelContext {
   registerTool(tool: ToolDescriptor): void;
@@ -193,8 +162,6 @@ export interface ModelContextTesting {
   registerToolsChangedCallback(callback: () => void): void;
   getCrossDocumentScriptToolResult(): Promise<string>;
 }
-
-// ─── Global Augmentation ──────────────────────────────────────────
 
 declare global {
   interface Navigator {

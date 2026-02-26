@@ -3,8 +3,6 @@ import { cleanupPolyfill, installPolyfill } from "./polyfill";
 import type { WebMCPProviderProps, WebMCPStatus } from "./types";
 import { warnOnce } from "./utils/warn";
 
-// ─── Context ──────────────────────────────────────────────────────
-
 interface WebMCPContextValue {
   available: boolean;
   name: string;
@@ -19,16 +17,12 @@ const MISSING_PROVIDER: WebMCPContextValue = {
 
 const WebMCPContext = createContext<WebMCPContextValue>(MISSING_PROVIDER);
 
-// ─── Polyfill refcount ────────────────────────────────────────────
-
 let polyfillConsumerCount = 0;
 
-/** @internal — test-only reset */
+/** @internal */
 function _resetPolyfillConsumerCount(): void {
   polyfillConsumerCount = 0;
 }
-
-// ─── Provider ─────────────────────────────────────────────────────
 
 function WebMCPProvider({ name, version, children }: WebMCPProviderProps) {
   const [available, setAvailable] = useState(false);
@@ -62,8 +56,6 @@ function WebMCPProvider({ name, version, children }: WebMCPProviderProps) {
   return <WebMCPContext.Provider value={value}>{children}</WebMCPContext.Provider>;
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────
-
 function useWebMCPStatus(): WebMCPStatus {
   const ctx = useContext(WebMCPContext);
   if (ctx === MISSING_PROVIDER) {
@@ -74,8 +66,6 @@ function useWebMCPStatus(): WebMCPStatus {
   }
   return { available: ctx.available };
 }
-
-// ─── Exports ──────────────────────────────────────────────────────
 
 export {
   WebMCPProvider,
