@@ -10,3 +10,4 @@ CLAUDE.md
 examples/*/node_modules/
 examples/*/dist/
 examples/nextjs/.next/
+*.tsbuildinfo

@@ -1,21 +1,14 @@
-// This is a Server Component. It validates that importing webmcp-react
-// in an SSR context doesn't crash (no navigator, no window).
-// Once hooks are implemented (MCP-11, MCP-12), this page will render
-// client components that use <WebMCPProvider> and useMcpTool.
+import { ToolDemo } from "./tools";
 
 export default function Home() {
   return (
     <main style={{ padding: "2rem", fontFamily: "system-ui" }}>
-      <h1>webmcp-react SSR Example</h1>
+      <h1>webmcp-react Next.js SSR Example</h1>
       <p>
-        This page renders server-side. Once hooks land, client components here will use{" "}
-        <code>&lt;WebMCPProvider&gt;</code> and <code>useMcpTool</code> to validate:
+        This page renders server-side. The <code>&lt;ToolDemo&gt;</code> below is
+        a client component that registers MCP tools after hydration.
       </p>
-      <ul>
-        <li>Server render doesn't crash (no navigator/window)</li>
-        <li>Client hydration activates the polyfill and registers tools</li>
-        <li>"use client" directive works correctly in App Router</li>
-      </ul>
+      <ToolDemo />
     </main>
   );
 }
