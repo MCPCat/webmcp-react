@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import type { InputSchema } from "../../types";
-import { schemaFingerprint, toStructuredContent, zodToInputSchema } from "../schema";
+import { schemaFingerprint, zodToInputSchema } from "../schema";
 
 // ─── zodToInputSchema ────────────────────────────────────────────
 
@@ -173,74 +173,5 @@ describe("schemaFingerprint", () => {
     const a = z.object({ x: z.string() });
     const b = z.object({ y: z.number() });
     expect(schemaFingerprint(a)).not.toBe(schemaFingerprint(b));
-  });
-});
-
-// ─── toStructuredContent ─────────────────────────────────────────
-
-describe("toStructuredContent", () => {
-  it("converts a plain object", () => {
-    expect(toStructuredContent({ foo: "bar", num: 42 })).toEqual({
-      foo: "bar",
-      num: 42,
-    });
-  });
-
-  it("returns null for a string", () => {
-    expect(toStructuredContent("hello")).toBeNull();
-  });
-
-  it("returns null for a number", () => {
-    expect(toStructuredContent(42)).toBeNull();
-  });
-
-  it("returns null for an array", () => {
-    expect(toStructuredContent([1, 2, 3])).toBeNull();
-  });
-
-  it("returns null for null", () => {
-    expect(toStructuredContent(null)).toBeNull();
-  });
-
-  it("returns null for undefined", () => {
-    expect(toStructuredContent(undefined)).toBeNull();
-  });
-
-  it("returns null for a boolean", () => {
-    expect(toStructuredContent(true)).toBeNull();
-  });
-
-  it("catches circular references gracefully", () => {
-    const obj: Record<string, unknown> = {};
-    obj.self = obj;
-    expect(toStructuredContent(obj)).toBeNull();
-  });
-
-  it("strips non-serializable values via round-trip", () => {
-    const result = toStructuredContent({
-      fn: () => {},
-      sym: Symbol("x"),
-      val: "ok",
-    });
-    expect(result).toEqual({ val: "ok" });
-  });
-
-  it("handles nested objects", () => {
-    expect(toStructuredContent({ a: { b: { c: 1 } } })).toEqual({
-      a: { b: { c: 1 } },
-    });
-  });
-
-  it("handles objects with Date values", () => {
-    expect(toStructuredContent({ date: new Date("2026-01-01") })).toEqual({
-      date: "2026-01-01T00:00:00.000Z",
-    });
-  });
-
-  it("returns a new object, not the original reference", () => {
-    const orig = { x: 1 };
-    const result = toStructuredContent(orig);
-    expect(result).toEqual(orig);
-    expect(result).not.toBe(orig);
   });
 });

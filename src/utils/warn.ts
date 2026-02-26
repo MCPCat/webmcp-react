@@ -28,7 +28,6 @@ export function warnOnce(key: string, message: string): void {
   console.warn(`[webmcp-react] ${message}`);
 }
 
-/** @internal — test-only reset */
 export function _resetWarnings(): void {
   _firedKeys.clear();
 }
