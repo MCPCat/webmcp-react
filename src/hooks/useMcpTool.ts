@@ -13,16 +13,12 @@ import type {
 import { schemaFingerprint, zodToInputSchema } from "../utils/schema";
 import { warnOnce } from "../utils/warn";
 
-// ─── Module-level state ──────────────────────────────────────────
-
 const TOOL_OWNER_BY_NAME = new Map<string, symbol>();
 
-/** @internal — test-only reset */
+// test-only
 export function _resetToolOwners(): void {
   TOOL_OWNER_BY_NAME.clear();
 }
-
-// ─── Constants ───────────────────────────────────────────────────
 
 const INITIAL_STATE: ToolExecutionState = {
   isExecuting: false,
@@ -31,8 +27,6 @@ const INITIAL_STATE: ToolExecutionState = {
   executionCount: 0,
 };
 
-// ─── Hook ────────────────────────────────────────────────────────
-
 export function useMcpTool<T extends z.ZodRawShape>(config: McpToolConfigZod<T>): UseMcpToolReturn;
 
 export function useMcpTool(config: McpToolConfigJsonSchema): UseMcpToolReturn;
@@ -40,7 +34,6 @@ export function useMcpTool(config: McpToolConfigJsonSchema): UseMcpToolReturn;
 export function useMcpTool(
   config: McpToolConfigZod<z.ZodRawShape> | McpToolConfigJsonSchema,
 ): UseMcpToolReturn {
-  // 1. Provider check
   const ctx = useContext(WebMCPContext);
   if (ctx === MISSING_PROVIDER) {
     warnOnce(
@@ -49,10 +42,8 @@ export function useMcpTool(
     );
   }
 
-  // 2. Discriminant
   const isZodPath = "input" in config && config.input instanceof z.ZodObject;
 
-  // 3. Fingerprints (stable strings for effect deps)
   const inputFingerprint = schemaFingerprint(
     isZodPath
       ? (config as McpToolConfigZod<z.ZodRawShape>).input
@@ -65,10 +56,8 @@ export function useMcpTool(
   );
   const annotationsFingerprint = config.annotations ? JSON.stringify(config.annotations) : "";
 
-  // 4. State
   const [state, setState] = useState<ToolExecutionState>(INITIAL_STATE);
 
-  // 5. Refs
   const configRef = useRef(config);
   const handlerRef = useRef(config.handler);
   const onSuccessRef = useRef(config.onSuccess);
@@ -81,7 +70,6 @@ export function useMcpTool(
   onSuccessRef.current = config.onSuccess;
   onErrorRef.current = config.onError;
 
-  // 6. Mount tracking
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -89,7 +77,6 @@ export function useMcpTool(
     };
   }, []);
 
-  // 7. User-facing execute — calls handler directly, does not go through modelContext
   const execute = useCallback(async (input?: Record<string, unknown>): Promise<CallToolResult> => {
     inFlightCountRef.current++;
     setState((prev) => ({ ...prev, isExecuting: true, error: null }));
@@ -144,12 +131,10 @@ export function useMcpTool(
     }
   }, []);
 
-  // 8. Reset
   const reset = useCallback(() => {
     setState(INITIAL_STATE);
   }, []);
 
-  // 9. Registration effect
   // biome-ignore lint/correctness/useExhaustiveDependencies: schema objects are tracked via fingerprints, handler/callbacks via refs
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.modelContext) {
@@ -267,6 +252,5 @@ export function useMcpTool(
     annotationsFingerprint,
   ]);
 
-  // 10. Return
   return { state, execute, reset };
 }
