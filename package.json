@@ -32,7 +32,10 @@
     "navigator.modelContext",
     "w3c"
   ],
-  "author": "",
+  "author": "Kashish Hora",
+  "contributors": [
+    "Naseem Alnaji"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
