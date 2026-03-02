@@ -1,5 +1,176 @@
 # webmcp-react
 
-React hooks for exposing your app's functionality as [WebMCP](https://www.w3.org/community/webmcp/) tools — transport-agnostic, SSR-safe, Strict Mode safe, W3C spec-aligned.
+React hooks for exposing typed tools on `navigator.modelContext`.
 
-**Work in progress. Coming soon.**
+[![npm version](https://img.shields.io/npm/v/webmcp-react)](https://www.npmjs.com/package/webmcp-react)
+[![license](https://img.shields.io/npm/l/webmcp-react)](./LICENSE)
+[![CI](https://github.com/MCPCat/webmcp-react/actions/workflows/ci.yml/badge.svg)](https://github.com/MCPCat/webmcp-react/actions/workflows/ci.yml)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/MCPCat/webmcp-react/pulls)
+
+> Experimental. WebMCP is still evolving, so small API and behavior changes should be expected.
+
+- **Zod-first.** Define inputs with Zod and get full type inference in handlers
+- **JSON Schema fallback.** Pass raw JSON Schema when you don't want Zod
+- **Built-in polyfill.** Uses a lightweight polyfill when native WebMCP is unavailable
+- **SSR-safe.** Works with Next.js, Remix, and other server-rendering frameworks
+- **StrictMode safe.** Avoids duplicate registrations and orphaned tools
+
+## Install
+
+```bash
+`npm install webmcp-react zod`
+```
+
+## Quick start
+
+Wrap your app in `<WebMCPProvider>` and register tools with `useMcpTool`:
+
+```tsx
+import { WebMCPProvider, useMcpTool } from "webmcp-react";
+import { z } from "zod";
+
+function SearchTool() {
+  useMcpTool({
+    name: "search",
+    description: "Search the catalog",
+    input: z.object({ query: z.string() }),
+    handler: async ({ query }) => ({
+      content: [{ type: "text", text: `Results for: ${query}` }],
+    }),
+  });
+  return null;
+}
+
+export default function App() {
+  return (
+    <WebMCPProvider name="my-app" version="1.0">
+      <SearchTool />
+    </WebMCPProvider>
+  );
+}
+```
+
+That's it. The tool is registered on `navigator.modelContext` and can be called by WebMCP-compatible agents.
+
+## How it works
+
+[WebMCP](https://www.w3.org/community/webmcp/) is an emerging web standard that adds `navigator.modelContext` to the browser, an API that lets any page expose typed, callable tools to AI agents. Native browser support is still experimental and may evolve quickly. Chrome recently [released it in Early Preview](https://developer.chrome.com/blog/webmcp-epp).
+
+This library provides React bindings for that API. `<WebMCPProvider>` installs a polyfill (skipped when native support exists), and each `useMcpTool` call registers a tool that agents can discover and execute.
+If you need to call tools from desktop MCP clients, you still need a bridge layer (for example, a browser extension or proxy). I'll probably build a simple bridging extension and include it in this project so people can use it in their existing desktop clients.
+
+![How webmcp-react works](./docs/architecture.svg)
+
+## Recipes
+
+### Execution state
+
+`useMcpTool` returns reactive state you can use to build UI around tool execution:
+
+```tsx
+function TranslateTool() {
+  const { state, execute } = useMcpTool({
+    name: "translate",
+    description: "Translate text to Spanish",
+    input: z.object({ text: z.string() }),
+    handler: async ({ text }) => {
+      const result = await translate(text, "es");
+      return { content: [{ type: "text", text: result }] };
+    },
+  });
+
+  return (
+    <div>
+      <button onClick={() => execute({ text: "Hello" })} disabled={state.isExecuting}>
+        {state.isExecuting ? "Translating..." : "Translate"}
+      </button>
+      {state.lastResult && <p>{state.lastResult.content[0].text}</p>}
+      {state.error && <p className="error">{state.error.message}</p>}
+    </div>
+  );
+}
+```
+
+### Tool annotations
+
+Hint AI agents about tool behavior with annotations (supports the [full MCP annotation set](https://modelcontextprotocol.io/docs/concepts/tools#annotations)):
+
+```tsx
+useMcpTool({
+  name: "delete_user",
+  description: "Permanently delete a user account",
+  input: z.object({ userId: z.string() }),
+  annotations: {
+    destructiveHint: true,
+    idempotentHint: true,
+  },
+  handler: async ({ userId }) => { /* ... */ },
+});
+```
+
+### Dynamic tools
+
+Tools register on mount and unregister on unmount. Conditionally render them like any React component:
+
+```tsx
+function App({ user }) {
+  return (
+    <WebMCPProvider name="app" version="1.0">
+      <PublicTools />
+      {user.isAdmin && <AdminTools />}
+    </WebMCPProvider>
+  );
+}
+```
+
+### Callbacks
+
+Run side effects on success or failure:
+
+```tsx
+useMcpTool({
+  name: "checkout",
+  description: "Complete a purchase",
+  input: z.object({ cartId: z.string() }),
+  handler: async ({ cartId }) => { /* ... */ },
+  onSuccess: (result) => analytics.track("checkout_complete"),
+  onError: (error) => toast.error(error.message),
+});
+```
+
+### JSON Schema
+
+Don't want Zod? Pass `inputSchema` directly:
+
+```tsx
+useMcpTool({
+  name: "calculate",
+  description: "Basic arithmetic",
+  inputSchema: {
+    type: "object",
+    properties: {
+      a: { type: "number" },
+      b: { type: "number" },
+      op: { type: "string", enum: ["add", "subtract", "multiply", "divide"] },
+    },
+    required: ["a", "b", "op"],
+  },
+  handler: async (args) => {
+    const { a, b, op } = args as { a: number; b: number; op: string };
+    const result = { add: a + b, subtract: a - b, multiply: a * b, divide: a / b }[op];
+    return { content: [{ type: "text", text: String(result) }] };
+  },
+});
+```
+
+### SSR
+
+Works with Next.js, Remix, and any server-rendering framework out of the box. The build includes a `"use client"` banner, so no extra configuration is needed.
+
+## API
+
+See the [full API reference](./docs/api.md).
+
+## License
+
+[MIT](./LICENSE)
