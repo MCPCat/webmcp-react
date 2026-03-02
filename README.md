@@ -18,7 +18,7 @@ React hooks for exposing typed tools on `navigator.modelContext`.
 ## Install
 
 ```bash
-`npm install webmcp-react zod`
+npm install webmcp-react zod
 ```
 
 ## Quick start
