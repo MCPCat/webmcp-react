@@ -36,24 +36,16 @@ The playground and Next.js example are handy for testing changes manually since 
 - One concern per PR
 - Add tests for new stuff. Tests live in `src/**/__tests__/`
 - Before pushing, make sure everything passes:
-
-  ```bash
-  pnpm build && pnpm typecheck && pnpm lint && pnpm test
-  ```
-
-  This is what CI runs (across Node 18, 20, and 22).
+```bash
+pnpm build && pnpm typecheck && pnpm lint && pnpm test
+```
 
 ## Code Style
 
 Biome handles formatting and linting, and the pre-commit hooks take care of it automatically, so you mostly don't need to worry about this. Run `pnpm lint:fix` if you want to fix things manually.
 
-Commit messages: one-line, lowercase, no prefixes. No `feat:` or `fix:` etc.
-
-```
-add type definitions and navigator augmentation
-fix schema fingerprint comparison for nested objects
-remove unused toStructuredContent utility
-```
+Commit messages: simple is preferred, but they get squashed anyway
+PR: useful titles and description (TBH you should use AI to generate them anyway)
 
 ## AI-Assisted Contributions
 
