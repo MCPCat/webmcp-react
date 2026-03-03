@@ -1,0 +1,51 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  width: 320px;
+  padding: 12px;
+  color: #1a1a1a;
+}
+
+h1 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+#status {
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.tab {
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.tab strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.tab .url {
+  display: block;
+  color: #888;
+  font-size: 11px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab .tools {
+  display: block;
+  color: #444;
+  font-size: 12px;
+}
