@@ -54,6 +54,8 @@
     "lint:fix": "biome check --write .",
     "dev:playground": "pnpm --filter webmcp-react-playground dev",
     "dev:nextjs": "pnpm --filter webmcp-react-nextjs-example dev",
+    "build:extension": "pnpm --filter webmcp-bridge-extension build",
+    "typecheck:extension": "pnpm --filter webmcp-bridge-extension typecheck",
     "prepare": "husky"
   },
   "peerDependencies": {

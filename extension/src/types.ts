@@ -1,4 +1,17 @@
-// ── Tool shape from modelContextTesting.listTools() ──
+interface ModelContextTesting {
+  listTools(): BrowserTool[];
+  executeTool(
+    toolName: string,
+    inputArgsJson: string,
+  ): Promise<string | null>;
+  registerToolsChangedCallback(callback: () => void): void;
+}
+
+declare global {
+  interface Navigator {
+    modelContextTesting?: ModelContextTesting;
+  }
+}
 
 export interface BrowserTool {
   name: string;
@@ -6,13 +19,7 @@ export interface BrowserTool {
   inputSchema?: string; // JSON-stringified JSON Schema
 }
 
-// ── Page messages (content-main ↔ content-isolated via window.postMessage) ──
-//
-// Trust model: the page is the trust boundary. Any script on the page can
-// register tools via navigator.modelContext.registerTool() directly, so
-// spoofing postMessage gives the same outcome via a different path. We do
-// not attempt to authenticate messages from the MAIN world — there is no
-// secure channel between MAIN and ISOLATED worlds in Chrome's architecture.
+// No auth on page messages — MAIN world has the same privileges as registerTool().
 
 export interface PageToolsUpdatedMessage {
   type: "WEBMCP_TOOLS_UPDATED";
@@ -42,8 +49,6 @@ export type PageMessage =
   | PageToolResultMessage
   | PageExecuteToolMessage
   | PageRequestToolsMessage;
-
-// ── Runtime messages (content-isolated ↔ background via chrome.runtime) ──
 
 export interface RuntimeToolsUpdatedMessage {
   type: "TOOLS_UPDATED";
@@ -92,8 +97,6 @@ export type RuntimeMessage =
   | RuntimeGetStatusMessage
   | RuntimeStatusMessage;
 
-// ── WebSocket messages (background ↔ MCP server) ──
-
 export interface WsListToolsRequest {
   type: "LIST_TOOLS";
   requestId: string;
@@ -139,8 +142,6 @@ export type WsMessageFromExtension =
   | WsToolsListResponse
   | WsToolResultResponse
   | WsToolsChangedNotification;
-
-// ── Aggregated tool (used by both background and MCP server) ──
 
 export interface AggregatedTool {
   namespacedName: string; // "tab-123:filter_products"
