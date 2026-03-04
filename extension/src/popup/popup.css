@@ -20,7 +20,22 @@ h1 {
 #status {
   color: #666;
   margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+
+#status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+  flex-shrink: 0;
+}
+
+#status-dot.green { background: #34a853; }
+#status-dot.yellow { background: #f9ab00; }
+#status-dot.grey { background: #ccc; }
 
 fieldset {
   border: 1px solid #e0e0e0;
@@ -49,38 +64,30 @@ fieldset input[type="radio"] {
   font-weight: 600;
 }
 
-.tab {
-  padding: 8px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  margin-bottom: 6px;
-}
-
-.tab strong {
-  display: block;
-  margin-bottom: 2px;
-}
-
-.tab .url {
-  display: block;
-  color: #888;
+.tab-group-header {
   font-size: 11px;
+  color: #888;
+  padding: 6px 0 2px;
+  border-bottom: 1px solid #e8e8e8;
   margin-bottom: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tab .tools {
-  display: block;
-  color: #444;
-  font-size: 12px;
+.tab-group-header:first-child {
+  padding-top: 0;
 }
 
-#tools:empty::after {
-  content: "No tools registered on this page.";
+.tool-item {
+  font-size: 12px;
+  color: #333;
+  padding: 3px 0 3px 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+#tools .tools-empty {
   color: #999;
   font-size: 12px;
-  display: block;
   padding: 4px 0;
 }

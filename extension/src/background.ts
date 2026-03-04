@@ -91,8 +91,32 @@ function wsSend(data: WsToolsListResponse | WsToolResultResponse | WsToolsChange
   }
 }
 
+// --- Badge ---
+
+function hasActiveState(): boolean {
+  return activatedTabs.size > 0 || activatedDomains.size > 0;
+}
+
+function updateBadge() {
+  const totalTools = Array.from(tabTools.values()).reduce(
+    (sum, info) => sum + info.tools.length,
+    0,
+  );
+  if (!wsConnected && hasActiveState()) {
+    chrome.action.setBadgeText({ text: "!" });
+    chrome.action.setBadgeBackgroundColor({ color: "#f9ab00" });
+  } else if (totalTools > 0) {
+    chrome.action.setBadgeText({ text: String(totalTools) });
+    chrome.action.setBadgeBackgroundColor({ color: "#34a853" });
+  } else {
+    chrome.action.setBadgeText({ text: "" });
+  }
+}
+
 function notifyToolsChanged() {
   wsSend({ type: "TOOLS_CHANGED" });
+
+  updateBadge();
 }
 
 function rejectPendingCallsForTab(tabId: number) {
@@ -228,6 +252,8 @@ function connectWebSocket() {
       }
     }, 20_000);
 
+  
+    updateBadge();
     notifyToolsChanged();
   };
 
@@ -248,6 +274,8 @@ function connectWebSocket() {
       clearInterval(keepAliveInterval);
       keepAliveInterval = null;
     }
+  
+    updateBadge();
     scheduleReconnect();
   };
 
@@ -373,6 +401,7 @@ chrome.runtime.onMessage.addListener(
           return true;
         }
         activatedTabs.add(tabId);
+      
         injectContentScripts(tabId).then(
           () => sendResponse({ ok: true }),
           (err) => sendResponse({ ok: false, error: String(err) }),
@@ -382,6 +411,7 @@ chrome.runtime.onMessage.addListener(
       case "ACTIVATE_DOMAIN": {
         const { tabId, origin } = message;
         activatedDomains.add(origin);
+      
         Promise.all([
           persistDomains(),
           registerContentScriptsForDomains([origin]),
@@ -405,12 +435,15 @@ chrome.runtime.onMessage.addListener(
         if (!isTabAuthorized(tabId, tabTools.get(tabId)?.url)) {
           purgeTabTools(tabId);
         }
+      
+        updateBadge();
         sendResponse({ ok: true });
         return true;
       }
       case "DEACTIVATE_DOMAIN": {
         const { origin } = message;
         activatedDomains.delete(origin);
+      
 
         // Purge tools from tabs on this origin — but only if not still authorized via activatedTabs
         for (const [tabId, info] of tabTools) {

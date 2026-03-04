@@ -7,7 +7,8 @@ import type {
   RuntimeStatusMessage,
 } from "../types";
 
-const statusEl = document.getElementById("status");
+const statusDot = document.getElementById("status-dot");
+const statusText = document.getElementById("status-text");
 const toolsEl = document.getElementById("tools");
 const domainLabel = document.getElementById("domain-label");
 const radios = document.querySelectorAll<HTMLInputElement>(
@@ -19,13 +20,22 @@ let currentOrigin: string | undefined;
 let currentMode: "off" | "tab" | "domain" = "off";
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 
+function setStatus(color: "green" | "yellow" | "grey", text: string) {
+  if (statusDot) {
+    statusDot.className = color;
+  }
+  if (statusText) {
+    statusText.textContent = text;
+  }
+}
+
 async function init() {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true,
   });
   if (!tab?.id || !tab.url) {
-    if (statusEl) statusEl.textContent = "No active tab";
+    setStatus("grey", "No active tab");
     return;
   }
 
@@ -33,7 +43,7 @@ async function init() {
   try {
     currentOrigin = new URL(tab.url).origin;
   } catch {
-    if (statusEl) statusEl.textContent = "Invalid tab URL";
+    setStatus("grey", "Invalid tab URL");
     return;
   }
 
@@ -46,7 +56,7 @@ async function init() {
     for (const radio of radios) {
       if (radio.value !== "off") radio.disabled = true;
     }
-    if (statusEl) statusEl.textContent = "Not available on this page";
+    setStatus("grey", "Not available on this page");
     return;
   }
 
@@ -59,7 +69,7 @@ function refreshStatus() {
     { type: "GET_STATUS", tabId: currentTabId } satisfies RuntimeGetStatusMessage,
     (response: RuntimeStatusMessage) => {
       if (!response) {
-        if (statusEl) statusEl.textContent = "No response from background";
+        setStatus("grey", "No response from background");
         return;
       }
 
@@ -69,12 +79,7 @@ function refreshStatus() {
       );
       if (radio) radio.checked = true;
 
-      if (statusEl) {
-        statusEl.textContent = response.mcpServerConnected
-          ? "MCP server connected"
-          : "MCP server disconnected";
-      }
-
+      updateStatusDisplay(currentMode, response.mcpServerConnected, response.tabs);
       renderTools(response, currentTabId!);
     },
   );
@@ -102,23 +107,87 @@ function stopPolling() {
   }
 }
 
+function updateStatusDisplay(
+  mode: "off" | "tab" | "domain",
+  mcpConnected: boolean,
+  tabs: RuntimeStatusMessage["tabs"],
+) {
+  if (mode === "off") {
+    setStatus("grey", "Disabled on this page");
+    return;
+  }
+  if (!mcpConnected) {
+    setStatus("yellow", "Not connected to any MCP client");
+    return;
+  }
+  const totalTools = tabs.reduce((sum, t) => sum + t.toolCount, 0);
+  if (totalTools === 0) {
+    setStatus("green", "Connected \u00b7 no tools registered");
+  } else {
+    const tabCount = tabs.length;
+    setStatus(
+      "green",
+      `Connected \u00b7 ${totalTools} tool${totalTools !== 1 ? "s" : ""} across ${tabCount} tab${tabCount !== 1 ? "s" : ""}`,
+    );
+  }
+}
+
+function hostnameFromUrl(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
 function renderTools(status: RuntimeStatusMessage, tabId: number) {
   if (!toolsEl) return;
   toolsEl.replaceChildren();
 
-  const tabInfo = status.tabs.find((t) => t.tabId === tabId);
-  if (!tabInfo || tabInfo.toolCount === 0) return;
+  if (currentMode === "off") return;
+
+  const allTabs = status.tabs;
+  const totalTools = allTabs.reduce((sum, t) => sum + t.toolCount, 0);
+
+  if (totalTools === 0) {
+    const msg = document.createElement("div");
+    msg.className = "tools-empty";
+    msg.textContent = "Waiting for tools...";
+    toolsEl.appendChild(msg);
+    return;
+  }
 
   // Tools appeared, stop polling
   stopPolling();
 
-  for (const name of tabInfo.toolNames) {
-    const div = document.createElement("div");
-    div.className = "tab";
-    const strong = document.createElement("strong");
-    strong.textContent = name;
-    div.appendChild(strong);
-    toolsEl.appendChild(div);
+  // Current tab first, then others
+  const currentTab = allTabs.find((t) => t.tabId === tabId);
+  const otherTabs = allTabs.filter((t) => t.tabId !== tabId && t.toolCount > 0);
+
+  const renderGroup = (
+    label: string,
+    toolNames: string[],
+  ) => {
+    const header = document.createElement("div");
+    header.className = "tab-group-header";
+    header.textContent = label;
+    toolsEl.appendChild(header);
+
+    for (const name of toolNames) {
+      const item = document.createElement("div");
+      item.className = "tool-item";
+      item.textContent = name;
+      toolsEl.appendChild(item);
+    }
+  };
+
+  if (currentTab && currentTab.toolCount > 0) {
+    renderGroup("Current tab", currentTab.toolNames);
+  }
+
+  for (const tab of otherTabs) {
+    const label = `${tab.title} (${hostnameFromUrl(tab.url)})`;
+    renderGroup(label, tab.toolNames);
   }
 }
 
