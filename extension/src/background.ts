@@ -398,21 +398,24 @@ chrome.runtime.onMessage.addListener(
         );
         return true;
       }
+      case "DEACTIVATE_TAB": {
+        const { tabId } = message;
+        activatedTabs.delete(tabId);
+        // Only purge if not still authorized via domain
+        if (!isTabAuthorized(tabId, tabTools.get(tabId)?.url)) {
+          purgeTabTools(tabId);
+        }
+        sendResponse({ ok: true });
+        return true;
+      }
       case "DEACTIVATE_DOMAIN": {
         const { origin } = message;
         activatedDomains.delete(origin);
 
-        // Purge tools from tabs on this origin
+        // Purge tools from tabs on this origin — but only if not still authorized via activatedTabs
         for (const [tabId, info] of tabTools) {
-          if (originFromUrl(info.url) === origin) {
+          if (originFromUrl(info.url) === origin && !activatedTabs.has(tabId)) {
             purgeTabTools(tabId);
-          }
-        }
-        // Also remove session activations for tabs on this origin
-        for (const tabId of activatedTabs) {
-          const info = tabTools.get(tabId);
-          if (info && originFromUrl(info.url) === origin) {
-            activatedTabs.delete(tabId);
           }
         }
 

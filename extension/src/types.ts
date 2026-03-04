@@ -89,6 +89,11 @@ export interface RuntimeActivateDomainMessage {
   origin: string;
 }
 
+export interface RuntimeDeactivateTabMessage {
+  type: "DEACTIVATE_TAB";
+  tabId: number;
+}
+
 export interface RuntimeDeactivateDomainMessage {
   type: "DEACTIVATE_DOMAIN";
   origin: string;
@@ -117,6 +122,7 @@ export type RuntimeMessage =
   | RuntimeGetStatusMessage
   | RuntimeActivateTabMessage
   | RuntimeActivateDomainMessage
+  | RuntimeDeactivateTabMessage
   | RuntimeDeactivateDomainMessage
   | RuntimeStatusMessage;
 

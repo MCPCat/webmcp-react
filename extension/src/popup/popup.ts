@@ -2,6 +2,7 @@ import type {
   RuntimeActivateDomainMessage,
   RuntimeActivateTabMessage,
   RuntimeDeactivateDomainMessage,
+  RuntimeDeactivateTabMessage,
   RuntimeGetStatusMessage,
   RuntimeStatusMessage,
 } from "../types";
@@ -16,6 +17,7 @@ const radios = document.querySelectorAll<HTMLInputElement>(
 let currentTabId: number | undefined;
 let currentOrigin: string | undefined;
 let currentMode: "off" | "tab" | "domain" = "off";
+let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 async function init() {
   const [tab] = await chrome.tabs.query({
@@ -48,6 +50,11 @@ async function init() {
     return;
   }
 
+  refreshStatus();
+}
+
+function refreshStatus() {
+  if (!currentTabId) return;
   chrome.runtime.sendMessage(
     { type: "GET_STATUS", tabId: currentTabId } satisfies RuntimeGetStatusMessage,
     (response: RuntimeStatusMessage) => {
@@ -73,12 +80,37 @@ async function init() {
   );
 }
 
+function startPollingForTools() {
+  if (pollTimer) clearInterval(pollTimer);
+  let attempts = 0;
+  pollTimer = setInterval(() => {
+    attempts++;
+    if (attempts > 20) {
+      // 10 seconds, give up
+      clearInterval(pollTimer!);
+      pollTimer = null;
+      return;
+    }
+    refreshStatus();
+  }, 500);
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+
 function renderTools(status: RuntimeStatusMessage, tabId: number) {
   if (!toolsEl) return;
   toolsEl.replaceChildren();
 
   const tabInfo = status.tabs.find((t) => t.tabId === tabId);
   if (!tabInfo || tabInfo.toolCount === 0) return;
+
+  // Tools appeared, stop polling
+  stopPolling();
 
   for (const name of tabInfo.toolNames) {
     const div = document.createElement("div");
@@ -95,27 +127,25 @@ async function handleModeChange(newMode: string) {
   const previousMode = currentMode;
 
   try {
-    // Deactivate domain if switching away from it
-    if (previousMode === "domain" && newMode !== "domain") {
-      await chrome.runtime.sendMessage({
-        type: "DEACTIVATE_DOMAIN",
-        origin: currentOrigin,
-      } satisfies RuntimeDeactivateDomainMessage);
-    }
-
     if (newMode === "tab") {
       await chrome.runtime.sendMessage({
         type: "ACTIVATE_TAB",
         tabId: currentTabId,
       } satisfies RuntimeActivateTabMessage);
+      // Unregister persistent scripts — tab is already authorized so tools won't be purged
+      if (previousMode === "domain") {
+        await chrome.runtime.sendMessage({
+          type: "DEACTIVATE_DOMAIN",
+          origin: currentOrigin,
+        } satisfies RuntimeDeactivateDomainMessage);
+      }
       currentMode = "tab";
+      startPollingForTools();
     } else if (newMode === "domain") {
-      // Must request permission from popup (user gesture context)
       const granted = await chrome.permissions.request({
         origins: [`${currentOrigin}/*`],
       });
       if (!granted) {
-        // Revert radio selection
         const radio = document.querySelector<HTMLInputElement>(
           `input[name="mode"][value="${previousMode}"]`,
         );
@@ -128,9 +158,23 @@ async function handleModeChange(newMode: string) {
         origin: currentOrigin,
       } satisfies RuntimeActivateDomainMessage);
       currentMode = "domain";
+      startPollingForTools();
     } else {
-      // "off" — nothing extra to do (domain deactivation handled above)
+      // "off" — deactivate everything
+      if (previousMode === "domain") {
+        await chrome.runtime.sendMessage({
+          type: "DEACTIVATE_DOMAIN",
+          origin: currentOrigin,
+        } satisfies RuntimeDeactivateDomainMessage);
+      }
+      // Always deactivate tab — both modes add to activatedTabs
+      await chrome.runtime.sendMessage({
+        type: "DEACTIVATE_TAB",
+        tabId: currentTabId,
+      } satisfies RuntimeDeactivateTabMessage);
       currentMode = "off";
+      stopPolling();
+      refreshStatus();
     }
   } catch (err) {
     console.error("[WebMCP Bridge] activation error:", err);
