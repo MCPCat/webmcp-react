@@ -169,12 +169,26 @@ function handleServerMessage(data: WsMessageFromServer) {
 
       pendingCalls.set(requestId, tabId);
 
-      chrome.tabs.sendMessage(tabId, {
-        type: "EXECUTE_TOOL",
-        requestId,
-        toolName,
-        argsJson,
-      } satisfies RuntimeMessage);
+      chrome.tabs.sendMessage(
+        tabId,
+        {
+          type: "EXECUTE_TOOL",
+          requestId,
+          toolName,
+          argsJson,
+        } satisfies RuntimeMessage,
+        () => {
+          if (chrome.runtime.lastError) {
+            pendingCalls.delete(requestId);
+            wsSend({
+              type: "TOOL_RESULT",
+              requestId,
+              result: null,
+              error: `Failed to reach tab ${tabId}: ${chrome.runtime.lastError.message}`,
+            });
+          }
+        },
+      );
       break;
     }
   }

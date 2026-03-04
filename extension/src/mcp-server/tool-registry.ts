@@ -9,7 +9,7 @@ const CALL_TIMEOUT = 30_000;
 const NAMESPACED_RE = /^tab-(\d+):(.+)$/;
 
 interface PendingCall {
-  resolve: (value: { content: Array<{ type: string; text: string }> }) => void;
+  resolve: (value: { content: Array<{ type: string; text: string }>; isError?: boolean }) => void;
   reject: (error: Error) => void;
   timer: ReturnType<typeof setTimeout>;
 }
@@ -47,10 +47,11 @@ export class ToolRegistry {
   async callTool(
     name: string,
     args: Record<string, unknown>,
-  ): Promise<{ content: Array<{ type: string; text: string }> }> {
+  ): Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }> {
     const match = NAMESPACED_RE.exec(name);
     if (!match) {
       return {
+        isError: true,
         content: [
           {
             type: "text",
@@ -65,6 +66,7 @@ export class ToolRegistry {
 
     if (!this.tools.has(name)) {
       return {
+        isError: true,
         content: [
           { type: "text", text: `Tool "${name}" not found.` },
         ],
@@ -73,6 +75,7 @@ export class ToolRegistry {
 
     if (!this.ws || this.ws.readyState !== this.ws.OPEN) {
       return {
+        isError: true,
         content: [
           { type: "text", text: "Extension not connected." },
         ],
@@ -85,7 +88,10 @@ export class ToolRegistry {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pendingCalls.delete(requestId);
-        reject(new Error(`Tool call "${name}" timed out after ${CALL_TIMEOUT}ms`));
+        resolve({
+          isError: true,
+          content: [{ type: "text", text: `Tool call "${name}" timed out after ${CALL_TIMEOUT}ms` }],
+        });
       }, CALL_TIMEOUT);
 
       this.pendingCalls.set(requestId, { resolve, reject, timer });
@@ -126,6 +132,7 @@ export class ToolRegistry {
 
         if (data.error) {
           pending.resolve({
+            isError: true,
             content: [{ type: "text", text: data.error }],
           });
         } else {
@@ -151,9 +158,10 @@ export class ToolRegistry {
   clearConnection() {
     for (const [requestId, pending] of this.pendingCalls) {
       clearTimeout(pending.timer);
-      pending.reject(
-        new Error("Extension disconnected. Tool call aborted."),
-      );
+      pending.resolve({
+        isError: true,
+        content: [{ type: "text", text: "Extension disconnected. Tool call aborted." }],
+      });
       this.pendingCalls.delete(requestId);
     }
 
