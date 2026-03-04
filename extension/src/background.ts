@@ -189,6 +189,15 @@ function purgeTabTools(tabId: number) {
   }
 }
 
+function isTabAuthorized(tabId: number, tabUrl?: string): boolean {
+  if (activatedTabs.has(tabId)) return true;
+  if (tabUrl) {
+    const origin = originFromUrl(tabUrl);
+    if (origin && activatedDomains.has(origin)) return true;
+  }
+  return false;
+}
+
 function getTabActivation(tabId: number, tabUrl?: string): "off" | "tab" | "domain" {
   if (tabUrl) {
     const origin = originFromUrl(tabUrl);
@@ -278,6 +287,18 @@ function handleServerMessage(data: WsMessageFromServer) {
         break;
       }
 
+      const tabInfo = tabTools.get(tabId)!;
+      if (!isTabAuthorized(tabId, tabInfo.url)) {
+        purgeTabTools(tabId);
+        wsSend({
+          type: "TOOL_RESULT",
+          requestId,
+          result: null,
+          error: `Tab ${tabId} is not authorized`,
+        });
+        break;
+      }
+
       pendingCalls.set(requestId, tabId);
 
       chrome.tabs.sendMessage(
@@ -313,6 +334,11 @@ chrome.runtime.onMessage.addListener(
       case "TOOLS_UPDATED": {
         const tabId = sender.tab?.id;
         if (tabId == null) break;
+        if (!isTabAuthorized(tabId, sender.tab?.url)) {
+          // Stale content script from a deactivated tab — purge and ignore
+          purgeTabTools(tabId);
+          break;
+        }
         tabTools.set(tabId, {
           tools: message.tools,
           title: sanitize(sender.tab?.title ?? "", 500),
@@ -324,6 +350,12 @@ chrome.runtime.onMessage.addListener(
       case "TOOL_RESULT": {
         const { requestId, result, error } = message;
         if (!pendingCalls.has(requestId)) break;
+        const senderTabId = sender.tab?.id;
+        if (senderTabId != null && !isTabAuthorized(senderTabId, sender.tab?.url)) {
+          // Stale content script — drop the result
+          pendingCalls.delete(requestId);
+          break;
+        }
         pendingCalls.delete(requestId);
 
         wsSend({
