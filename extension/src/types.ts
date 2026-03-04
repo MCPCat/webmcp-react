@@ -75,6 +75,23 @@ export interface RuntimeRequestToolsMessage {
 
 export interface RuntimeGetStatusMessage {
   type: "GET_STATUS";
+  tabId?: number;
+}
+
+export interface RuntimeActivateTabMessage {
+  type: "ACTIVATE_TAB";
+  tabId: number;
+}
+
+export interface RuntimeActivateDomainMessage {
+  type: "ACTIVATE_DOMAIN";
+  tabId: number;
+  origin: string;
+}
+
+export interface RuntimeDeactivateDomainMessage {
+  type: "DEACTIVATE_DOMAIN";
+  origin: string;
 }
 
 export interface RuntimeStatusMessage {
@@ -87,6 +104,9 @@ export interface RuntimeStatusMessage {
     toolNames: string[];
   }>;
   mcpServerConnected: boolean;
+  activatedTabs: number[];
+  activatedDomains: string[];
+  currentTabActivation: "off" | "tab" | "domain";
 }
 
 export type RuntimeMessage =
@@ -95,6 +115,9 @@ export type RuntimeMessage =
   | RuntimeExecuteToolMessage
   | RuntimeRequestToolsMessage
   | RuntimeGetStatusMessage
+  | RuntimeActivateTabMessage
+  | RuntimeActivateDomainMessage
+  | RuntimeDeactivateDomainMessage
   | RuntimeStatusMessage;
 
 export interface WsListToolsRequest {
