@@ -22,6 +22,33 @@ h1 {
   margin-bottom: 12px;
 }
 
+fieldset {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+fieldset legend {
+  font-size: 11px;
+  color: #888;
+  padding: 0 4px;
+}
+
+fieldset label {
+  display: block;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+fieldset input[type="radio"] {
+  margin-right: 6px;
+}
+
+#domain-label {
+  font-weight: 600;
+}
+
 .tab {
   padding: 8px;
   border: 1px solid #e0e0e0;
@@ -48,4 +75,12 @@ h1 {
   display: block;
   color: #444;
   font-size: 12px;
+}
+
+#tools:empty::after {
+  content: "No tools registered on this page.";
+  color: #999;
+  font-size: 12px;
+  display: block;
+  padding: 4px 0;
 }

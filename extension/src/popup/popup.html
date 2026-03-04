@@ -10,7 +10,22 @@
     <div id="root">
       <h1>WebMCP Bridge</h1>
       <p id="status">Loading...</p>
-      <div id="tabs"></div>
+      <fieldset id="activation">
+        <legend>Activation</legend>
+        <label>
+          <input type="radio" name="mode" value="off" checked />
+          Off
+        </label>
+        <label>
+          <input type="radio" name="mode" value="tab" />
+          This tab only
+        </label>
+        <label>
+          <input type="radio" name="mode" value="domain" />
+          Always on <span id="domain-label">this site</span>
+        </label>
+      </fieldset>
+      <div id="tools"></div>
     </div>
     <script src="popup.js" type="module"></script>
   </body>
