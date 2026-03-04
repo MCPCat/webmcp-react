@@ -19,6 +19,7 @@ const pendingCalls = new Map<string, number>();
 let ws: WebSocket | null = null;
 let wsConnected = false;
 let reconnectDelay = 1000;
+let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 const MAX_RECONNECT_DELAY = 30_000;
 const WS_PORT = 12315;
 
@@ -99,6 +100,13 @@ function connectWebSocket() {
     wsConnected = true;
     reconnectDelay = 1000;
 
+    // Keep service worker alive while WebSocket is connected (Chrome 116+)
+    keepAliveInterval = setInterval(() => {
+      if (ws && wsConnected) {
+        ws.send(JSON.stringify({ type: "PING" }));
+      }
+    }, 20_000);
+
     // Force fresh tool sync on reconnect
     notifyToolsChanged();
   };
@@ -116,6 +124,10 @@ function connectWebSocket() {
     console.log("[WebMCP Bridge] Disconnected from MCP server");
     wsConnected = false;
     ws = null;
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+      keepAliveInterval = null;
+    }
     scheduleReconnect();
   };
 
