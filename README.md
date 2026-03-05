@@ -57,9 +57,16 @@ That's it. The tool is registered on `navigator.modelContext` and can be called 
 [WebMCP](https://www.w3.org/community/webmcp/) is an emerging web standard that adds `navigator.modelContext` to the browser, an API that lets any page expose typed, callable tools to AI agents. Native browser support is still experimental and may evolve quickly. Chrome recently [released it in Early Preview](https://developer.chrome.com/blog/webmcp-epp).
 
 This library provides React bindings for that API. `<WebMCPProvider>` installs a polyfill (skipped when native support exists), and each `useMcpTool` call registers a tool that agents can discover and execute.
-If you need to call tools from desktop MCP clients, you still need a bridge layer (for example, a browser extension or proxy). I'll probably build a simple bridging extension and include it in this project so people can use it in their existing desktop clients.
 
 ![How webmcp-react works](./docs/architecture.svg)
+
+## Connect to AI clients
+
+Desktop MCP clients like Claude Code and Cursor can't access `navigator.modelContext` directly. This repo includes a [Chrome extension](./extension) that connects your registered tools to any MCP client.
+
+See the [extension setup guide](./extension/README.md) for build, install, and configuration instructions.
+
+Once Chrome supports this bridging natively, I'll deprecate the extension.
 
 ## Recipes
 

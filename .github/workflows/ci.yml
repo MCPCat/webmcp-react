@@ -29,3 +29,5 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+      - run: pnpm --filter webmcp-bridge-extension build
+      - run: pnpm --filter webmcp-bridge-extension typecheck

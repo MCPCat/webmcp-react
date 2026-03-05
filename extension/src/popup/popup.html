@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebMCP Bridge</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div id="root">
+      <h1>WebMCP Bridge</h1>
+      <p id="status"><span id="status-dot"></span><span id="status-text">Loading...</span></p>
+      <fieldset id="activation">
+        <legend>Activation</legend>
+        <label>
+          <input type="radio" name="mode" value="off" checked />
+          Off
+        </label>
+        <label>
+          <input type="radio" name="mode" value="tab" />
+          Until reload
+        </label>
+        <label>
+          <input type="radio" name="mode" value="domain" />
+          Always on <span id="domain-label">this site</span>
+        </label>
+      </fieldset>
+      <div id="tools"></div>
+    </div>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

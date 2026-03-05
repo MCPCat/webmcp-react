@@ -1,0 +1,93 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  width: 320px;
+  padding: 12px;
+  color: #1a1a1a;
+}
+
+h1 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+#status {
+  color: #666;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+  flex-shrink: 0;
+}
+
+#status-dot.green { background: #34a853; }
+#status-dot.yellow { background: #f9ab00; }
+#status-dot.grey { background: #ccc; }
+
+fieldset {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+fieldset legend {
+  font-size: 11px;
+  color: #888;
+  padding: 0 4px;
+}
+
+fieldset label {
+  display: block;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+fieldset input[type="radio"] {
+  margin-right: 6px;
+}
+
+#domain-label {
+  font-weight: 600;
+}
+
+.tab-group-header {
+  font-size: 11px;
+  color: #888;
+  padding: 6px 0 2px;
+  border-bottom: 1px solid #e8e8e8;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-group-header:first-child {
+  padding-top: 0;
+}
+
+.tool-item {
+  font-size: 12px;
+  color: #333;
+  padding: 3px 0 3px 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+#tools .tools-empty {
+  color: #999;
+  font-size: 12px;
+  padding: 4px 0;
+}

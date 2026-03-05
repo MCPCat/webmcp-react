@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "WebMCP Bridge",
+  "version": "0.1.0",
+  "description": "Bridge WebMCP tools to AI clients via MCP",
+  "permissions": ["tabs", "scripting", "activeTab", "storage"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "WebMCP Bridge",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  }
+}
