@@ -52,6 +52,16 @@ const configs = [
     banner: { js: "#!/usr/bin/env node" },
     external: ["@modelcontextprotocol/sdk", "ws"],
   },
+  {
+    ...shared,
+    entryPoints: ["src/mcp-server/index.ts"],
+    outfile: "../packages/webmcp-server/bin/webmcp-server.js",
+    format: "esm",
+    platform: "node",
+    target: "node18",
+    banner: { js: "#!/usr/bin/env node" },
+    external: ["@modelcontextprotocol/sdk", "ws"],
+  },
 ];
 
 function copyStaticFiles() {
@@ -59,6 +69,7 @@ function copyStaticFiles() {
   cpSync("manifest.json", "dist/manifest.json");
   cpSync("src/popup/popup.html", "dist/popup.html");
   cpSync("src/popup/popup.css", "dist/popup.css");
+  cpSync("icons", "dist/icons", { recursive: true });
 }
 
 if (isWatch) {
