@@ -258,11 +258,13 @@ function connectWebSocket() {
   };
 
   ws.onmessage = (event) => {
+    const raw = String(event.data);
+    console.log("[WebMCP Bridge] ws.onmessage raw:", raw.slice(0, 300));
     try {
-      const data = JSON.parse(String(event.data)) as WsMessageFromServer;
+      const data = JSON.parse(raw) as WsMessageFromServer;
       handleServerMessage(data);
-    } catch {
-      console.error("[WebMCP Bridge] Failed to parse server message");
+    } catch (err) {
+      console.error("[WebMCP Bridge] Failed to parse server message:", err);
     }
   };
 
@@ -292,9 +294,11 @@ function scheduleReconnect() {
 }
 
 function handleServerMessage(data: WsMessageFromServer) {
+  console.log("[WebMCP Bridge] ← server message:", data.type, data);
   switch (data.type) {
     case "LIST_TOOLS": {
       const tools = buildAggregatedTools();
+      console.log("[WebMCP Bridge] → TOOLS_LIST with", tools.length, "tools");
       wsSend({
         type: "TOOLS_LIST",
         requestId: data.requestId,
@@ -304,8 +308,10 @@ function handleServerMessage(data: WsMessageFromServer) {
     }
     case "CALL_TOOL": {
       const { requestId, tabId, toolName, argsJson } = data;
+      console.log("[WebMCP Bridge] CALL_TOOL:", { tabId, toolName, argsJson: argsJson.slice(0, 200) });
 
       if (!tabTools.has(tabId)) {
+        console.warn("[WebMCP Bridge] Tab not found in tabTools. Known tabs:", [...tabTools.keys()]);
         wsSend({
           type: "TOOL_RESULT",
           requestId,
@@ -316,7 +322,11 @@ function handleServerMessage(data: WsMessageFromServer) {
       }
 
       const tabInfo = tabTools.get(tabId)!;
+      console.log("[WebMCP Bridge] Tab info:", { title: tabInfo.title, url: tabInfo.url, toolCount: tabInfo.tools.length });
+      console.log("[WebMCP Bridge] Auth check:", { isAuthorized: isTabAuthorized(tabId, tabInfo.url), activatedTabs: [...activatedTabs], activatedDomains: [...activatedDomains] });
+
       if (!isTabAuthorized(tabId, tabInfo.url)) {
+        console.warn("[WebMCP Bridge] Tab not authorized, purging");
         purgeTabTools(tabId);
         wsSend({
           type: "TOOL_RESULT",
@@ -328,6 +338,7 @@ function handleServerMessage(data: WsMessageFromServer) {
       }
 
       pendingCalls.set(requestId, tabId);
+      console.log("[WebMCP Bridge] Sending EXECUTE_TOOL to tab", tabId);
 
       chrome.tabs.sendMessage(
         tabId,
@@ -339,6 +350,7 @@ function handleServerMessage(data: WsMessageFromServer) {
         } satisfies RuntimeMessage,
         () => {
           if (chrome.runtime.lastError) {
+            console.error("[WebMCP Bridge] sendMessage failed:", chrome.runtime.lastError.message);
             pendingCalls.delete(requestId);
             wsSend({
               type: "TOOL_RESULT",
@@ -346,6 +358,8 @@ function handleServerMessage(data: WsMessageFromServer) {
               result: null,
               error: `Failed to reach tab ${tabId}: ${chrome.runtime.lastError.message}`,
             });
+          } else {
+            console.log("[WebMCP Bridge] sendMessage delivered to tab", tabId);
           }
         },
       );
@@ -358,6 +372,7 @@ function handleServerMessage(data: WsMessageFromServer) {
 
 chrome.runtime.onMessage.addListener(
   (message: RuntimeMessage, sender, sendResponse) => {
+    console.log("[WebMCP Bridge] runtime.onMessage:", message.type, "from tab", sender.tab?.id, message);
     switch (message.type) {
       case "TOOLS_UPDATED": {
         const tabId = sender.tab?.id;
