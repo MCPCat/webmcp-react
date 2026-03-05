@@ -21,6 +21,12 @@ React hooks for exposing typed tools on `navigator.modelContext`.
 npm install webmcp-react zod
 ```
 
+## Playground
+
+Try it live: [**webmcp-react playground**](https://mcpcat.github.io/webmcp-react/playground/)
+
+The playground registers several example tools and includes a DevPanel for testing tool execution. Install the Chrome extension to bridge tools to AI clients like Claude and Cursor.
+
 ## Quick start
 
 Wrap your app in `<WebMCPProvider>` and register tools with `useMcpTool`:
