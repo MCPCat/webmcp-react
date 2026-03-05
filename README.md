@@ -57,7 +57,7 @@ That's it. The tool is registered on `navigator.modelContext` and can be called 
 This repo ships with [agent skills](./skills) that can set up webmcp-react and scaffold tools for you. Install them with the [skills CLI](https://skills.sh):
 
 ```bash
-npx skills add MCPCat/webmcp-react
+npx skills add mcpcat/webmcp-react
 ```
 
 Works with Cursor, Claude Code, GitHub Copilot, Cline, and [18+ other agents](https://vercel.com/docs/agent-resources/skills).
