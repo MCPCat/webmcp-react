@@ -7,6 +7,8 @@ import type {
   WsToolsChangedNotification,
 } from "./types";
 
+const DEBUG = false;
+
 console.log("[WebMCP Bridge] background loaded");
 
 const tabTools = new Map<
@@ -242,7 +244,7 @@ function connectWebSocket() {
   }
 
   ws.onopen = () => {
-    console.log("[WebMCP Bridge] Connected to MCP server");
+    if (DEBUG) console.log("[WebMCP Bridge] Connected to MCP server");
     wsConnected = true;
     reconnectDelay = 1000;
 
@@ -259,7 +261,7 @@ function connectWebSocket() {
 
   ws.onmessage = (event) => {
     const raw = String(event.data);
-    console.log("[WebMCP Bridge] ws.onmessage raw:", raw.slice(0, 300));
+    if (DEBUG) console.log("[WebMCP Bridge] ws.onmessage raw:", raw.slice(0, 300));
     try {
       const data = JSON.parse(raw) as WsMessageFromServer;
       handleServerMessage(data);
@@ -269,7 +271,7 @@ function connectWebSocket() {
   };
 
   ws.onclose = () => {
-    console.log("[WebMCP Bridge] Disconnected from MCP server");
+    if (DEBUG) console.log("[WebMCP Bridge] Disconnected from MCP server");
     wsConnected = false;
     ws = null;
     if (keepAliveInterval) {
@@ -294,11 +296,11 @@ function scheduleReconnect() {
 }
 
 function handleServerMessage(data: WsMessageFromServer) {
-  console.log("[WebMCP Bridge] ← server message:", data.type, data);
+  if (DEBUG) console.log("[WebMCP Bridge] ← server message:", data.type, data);
   switch (data.type) {
     case "LIST_TOOLS": {
       const tools = buildAggregatedTools();
-      console.log("[WebMCP Bridge] → TOOLS_LIST with", tools.length, "tools");
+      if (DEBUG) console.log("[WebMCP Bridge] → TOOLS_LIST with", tools.length, "tools");
       wsSend({
         type: "TOOLS_LIST",
         requestId: data.requestId,
@@ -308,7 +310,7 @@ function handleServerMessage(data: WsMessageFromServer) {
     }
     case "CALL_TOOL": {
       const { requestId, tabId, toolName, argsJson } = data;
-      console.log("[WebMCP Bridge] CALL_TOOL:", { tabId, toolName, argsJson: argsJson.slice(0, 200) });
+      if (DEBUG) console.log("[WebMCP Bridge] CALL_TOOL:", { tabId, toolName, argsJson: argsJson.slice(0, 200) });
 
       if (!tabTools.has(tabId)) {
         console.warn("[WebMCP Bridge] Tab not found in tabTools. Known tabs:", [...tabTools.keys()]);
@@ -322,8 +324,8 @@ function handleServerMessage(data: WsMessageFromServer) {
       }
 
       const tabInfo = tabTools.get(tabId)!;
-      console.log("[WebMCP Bridge] Tab info:", { title: tabInfo.title, url: tabInfo.url, toolCount: tabInfo.tools.length });
-      console.log("[WebMCP Bridge] Auth check:", { isAuthorized: isTabAuthorized(tabId, tabInfo.url), activatedTabs: [...activatedTabs], activatedDomains: [...activatedDomains] });
+      if (DEBUG) console.log("[WebMCP Bridge] Tab info:", { title: tabInfo.title, url: tabInfo.url, toolCount: tabInfo.tools.length });
+      if (DEBUG) console.log("[WebMCP Bridge] Auth check:", { isAuthorized: isTabAuthorized(tabId, tabInfo.url), activatedTabs: [...activatedTabs], activatedDomains: [...activatedDomains] });
 
       if (!isTabAuthorized(tabId, tabInfo.url)) {
         console.warn("[WebMCP Bridge] Tab not authorized, purging");
@@ -338,7 +340,7 @@ function handleServerMessage(data: WsMessageFromServer) {
       }
 
       pendingCalls.set(requestId, tabId);
-      console.log("[WebMCP Bridge] Sending EXECUTE_TOOL to tab", tabId);
+      if (DEBUG) console.log("[WebMCP Bridge] Sending EXECUTE_TOOL to tab", tabId);
 
       chrome.tabs.sendMessage(
         tabId,
@@ -359,7 +361,7 @@ function handleServerMessage(data: WsMessageFromServer) {
               error: `Failed to reach tab ${tabId}: ${chrome.runtime.lastError.message}`,
             });
           } else {
-            console.log("[WebMCP Bridge] sendMessage delivered to tab", tabId);
+            if (DEBUG) console.log("[WebMCP Bridge] sendMessage delivered to tab", tabId);
           }
         },
       );
@@ -372,7 +374,7 @@ function handleServerMessage(data: WsMessageFromServer) {
 
 chrome.runtime.onMessage.addListener(
   (message: RuntimeMessage, sender, sendResponse) => {
-    console.log("[WebMCP Bridge] runtime.onMessage:", message.type, "from tab", sender.tab?.id, message);
+    if (DEBUG) console.log("[WebMCP Bridge] runtime.onMessage:", message.type, "from tab", sender.tab?.id, message);
     switch (message.type) {
       case "TOOLS_UPDATED": {
         const tabId = sender.tab?.id;

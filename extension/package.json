@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node esbuild.config.mjs",
+    "build:extension": "node esbuild.config.mjs --extension-only",
     "dev": "node esbuild.config.mjs --watch",
     "typecheck": "tsc --noEmit"
   },

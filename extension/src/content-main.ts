@@ -1,9 +1,11 @@
 import type { PageMessage, BrowserTool } from "./types";
 
+const DEBUG = false;
+
 console.log("[WebMCP Bridge] content-main loaded");
 
 function postToIsolated(message: PageMessage) {
-  window.postMessage(message, "*");
+  window.postMessage(message, window.location.origin);
 }
 
 function sendToolsUpdate(tools: BrowserTool[]) {
@@ -69,7 +71,7 @@ const pollTimer = setInterval(() => {
 
   if (ctx) {
     clearInterval(pollTimer);
-    console.log("[WebMCP Bridge] modelContextTesting found");
+    if (DEBUG) console.log("[WebMCP Bridge] modelContextTesting found");
 
     // Send initial tool list
     sendToolsUpdate(ctx.listTools());
@@ -83,6 +85,6 @@ const pollTimer = setInterval(() => {
 
   if (elapsed >= POLL_TIMEOUT) {
     clearInterval(pollTimer);
-    console.log("[WebMCP Bridge] modelContextTesting not found after 10s, giving up");
+    if (DEBUG) console.log("[WebMCP Bridge] modelContextTesting not found after 10s, giving up");
   }
 }, POLL_INTERVAL);
