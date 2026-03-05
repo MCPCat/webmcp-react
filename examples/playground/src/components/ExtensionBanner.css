@@ -1,0 +1,66 @@
+.extension-banner {
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.extension-banner--connected {
+  background: #0d2818;
+  border-bottom: 1px solid #1a4d2e;
+  color: #4ade80;
+}
+
+.extension-banner--not-detected {
+  background: #2d1f00;
+  border-bottom: 1px solid #4d3800;
+  color: #fbbf24;
+}
+
+.extension-banner__content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.extension-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.extension-banner--connected .extension-banner__dot {
+  background: #4ade80;
+}
+
+.extension-banner--not-detected .extension-banner__dot {
+  background: #fbbf24;
+}
+
+.extension-banner a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.extension-banner a:hover {
+  opacity: 0.8;
+}
+
+.extension-banner__dismiss {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.extension-banner__dismiss:hover {
+  opacity: 1;
+}

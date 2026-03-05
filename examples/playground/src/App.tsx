@@ -2,6 +2,7 @@ import { useState } from "react";
 import { WebMCPProvider, useMcpTool, useWebMCPStatus } from "webmcp-react";
 import { z } from "zod";
 import { DevPanel } from "./components/DevPanel";
+import { ExtensionBanner } from "./components/ExtensionBanner";
 import "./App.css";
 
 function SearchTool() {
@@ -126,6 +127,7 @@ export default function App() {
 
   return (
     <WebMCPProvider name="playground" version="1.0">
+      <ExtensionBanner />
       <div className="app">
         <header className="app-header">
           <h1>webmcp-react playground</h1>
