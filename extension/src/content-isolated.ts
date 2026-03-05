@@ -27,24 +27,28 @@ window.addEventListener("message", (event: MessageEvent<PageMessage>) => {
 });
 
 // Forward background messages to page
-chrome.runtime.onMessage.addListener((message: RuntimeMessage) => {
-  switch (message.type) {
-    case "EXECUTE_TOOL":
-      window.postMessage(
-        {
-          type: "WEBMCP_EXECUTE_TOOL",
-          requestId: message.requestId,
-          toolName: message.toolName,
-          argsJson: message.argsJson,
-        } satisfies PageMessage,
-        "*",
-      );
-      break;
-    case "REQUEST_TOOLS":
-      window.postMessage(
-        { type: "WEBMCP_REQUEST_TOOLS" } satisfies PageMessage,
-        "*",
-      );
-      break;
-  }
-});
+chrome.runtime.onMessage.addListener(
+  (message: RuntimeMessage, _sender, sendResponse) => {
+    switch (message.type) {
+      case "EXECUTE_TOOL":
+        window.postMessage(
+          {
+            type: "WEBMCP_EXECUTE_TOOL",
+            requestId: message.requestId,
+            toolName: message.toolName,
+            argsJson: message.argsJson,
+          } satisfies PageMessage,
+          "*",
+        );
+        sendResponse({ ok: true });
+        break;
+      case "REQUEST_TOOLS":
+        window.postMessage(
+          { type: "WEBMCP_REQUEST_TOOLS" } satisfies PageMessage,
+          "*",
+        );
+        sendResponse({ ok: true });
+        break;
+    }
+  },
+);
