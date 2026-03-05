@@ -1,0 +1,35 @@
+{
+  "name": "webmcp-server",
+  "version": "0.1.0",
+  "description": "MCP server that bridges WebMCP browser tools to AI clients like Claude Code and Cursor",
+  "type": "module",
+  "bin": {
+    "webmcp-server": "./bin/webmcp-server.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "keywords": [
+    "webmcp",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "chrome-extension",
+    "navigator.modelContext"
+  ],
+  "author": "Kashish Hora",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCPCat/webmcp-react.git",
+    "directory": "packages/webmcp-server"
+  },
+  "homepage": "https://github.com/MCPCat/webmcp-react/tree/main/packages/webmcp-server",
+  "bugs": {
+    "url": "https://github.com/MCPCat/webmcp-react/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "ws": "^8.18.0"
+  }
+}
