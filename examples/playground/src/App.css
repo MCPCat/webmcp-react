@@ -1,3 +1,5 @@
+/* ── Reset & Base ──────────────────────────────────── */
+
 * {
   margin: 0;
   padding: 0;
@@ -6,30 +8,229 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #0a0a0a;
+  background: #121213;
   color: #e0e0e0;
 }
 
-.app {
-  max-width: 600px;
-  padding: 2rem;
+/* ── Layout ───────────────────────────────────────── */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.app-header h1 {
+.app-layout {
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  flex: 1;
+}
+
+.game-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  margin-right: 380px;
+}
+
+/* ── Header ───────────────────────────────────────── */
+
+.game-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid #3a3a3c;
+}
+
+.game-header h1 {
   font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ── Status Badge ─────────────────────────────────── */
+
+.status-badge {
+  font-size: 0.7rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.app-header p {
+  padding: 0.2em 0.65em;
+  border-radius: 999px;
+  background: #3a3a3c;
   color: #888;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.app-header code {
+.status-badge.online {
+  background: #1b3a1b;
+  color: #538d4e;
+}
+
+/* ── Start Screen ─────────────────────────────────── */
+
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 400px;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.tagline {
+  color: #888;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.tagline code {
   background: #1a1a2e;
   padding: 0.15em 0.4em;
   border-radius: 4px;
+  font-size: 0.85rem;
+  color: #a0a0d0;
+}
+
+.hint-text {
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.hint-text strong {
+  color: #888;
+}
+
+.mode-descriptions {
+  color: #888;
   font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 340px;
+}
+
+/* ── Buttons ──────────────────────────────────────── */
+
+.start-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.6em 1.4em;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn-primary {
+  background: #538d4e;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #3a3a3c;
+  color: #e0e0e0;
+}
+
+/* ── Game Info Bar ────────────────────────────────── */
+
+.game-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.guess-counter {
+  font-variant-numeric: tabular-nums;
+}
+
+.hard-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15em 0.55em;
+  border-radius: 999px;
+  background: rgba(181, 159, 59, 0.2);
+  color: #b59f3b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Game Message ─────────────────────────────────── */
+
+.game-message {
+  margin-top: 0.75rem;
+  padding: 0.5em 1.2em;
+  border-radius: 6px;
+  background: #1a1a1c;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ── Game Over ────────────────────────────────────── */
+
+.game-over {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.game-over-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.game-over-text.win {
+  color: #538d4e;
+}
+
+.game-over-text.lose {
+  color: #888;
+}
+
+.game-over-text strong {
+  color: #e0e0e0;
+  letter-spacing: 0.08em;
+}
+
+/* ── Easy Mode Toggle ─────────────────────────────── */
+
+.easy-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 1.5rem;
+  font-size: 0.75rem;
+  color: #666;
+  cursor: pointer;
+  user-select: none;
+}
+
+.easy-mode-toggle input[type="checkbox"] {
+  cursor: pointer;
 }

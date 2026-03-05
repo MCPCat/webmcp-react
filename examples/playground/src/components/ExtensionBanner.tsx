@@ -57,11 +57,11 @@ export function ExtensionBanner() {
       <div className="extension-banner__content">
         <span className="extension-banner__dot" />
         <span>
-          Install the{" "}
+          <strong>Not connected</strong> — the{" "}
           <a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer">
             WebMCP Bridge extension
           </a>{" "}
-          to connect your tools to AI clients
+          is not detected. Install it to expose your tools to AI clients.
         </span>
       </div>
       <button

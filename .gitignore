@@ -13,3 +13,4 @@ examples/nextjs/.next/
 *.tsbuildinfo
 src/**/*.js
 examples/*/src/**/*.js
+docs/plans/

@@ -9,6 +9,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
     "paths": {
       "webmcp-react": ["../../src/index.ts"]
