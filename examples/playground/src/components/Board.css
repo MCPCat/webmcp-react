@@ -1,0 +1,67 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 1.5rem 0;
+}
+
+.board-row {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.board-cell {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: background-color 0.3s, border-color 0.3s;
+  text-transform: uppercase;
+}
+
+.board-cell.empty {
+  border: 2px solid #333;
+  background-color: transparent;
+}
+
+.board-cell.filled {
+  border: 2px solid #555;
+  background-color: transparent;
+  animation: pop 0.1s ease-in-out;
+}
+
+.board-cell.correct {
+  background-color: #538d4e;
+  border: 2px solid #538d4e;
+  color: white;
+}
+
+.board-cell.present {
+  background-color: #b59f3b;
+  border: 2px solid #b59f3b;
+  color: white;
+}
+
+.board-cell.absent {
+  background-color: #3a3a3c;
+  border: 2px solid #3a3a3c;
+  color: white;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

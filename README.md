@@ -23,9 +23,9 @@ npm install webmcp-react zod
 
 ## Playground
 
-Try it live: [**webmcp-react playground**](https://mcpcat.github.io/webmcp-react/playground/)
+Try it live: [**WebMCP Wordle Demo**](https://mcpcat.github.io/webmcp-react/playground/)
 
-The playground registers several example tools and includes a DevPanel for testing tool execution. Install the Chrome extension to bridge tools to AI clients like Claude and Cursor.
+A fully playable Wordle clone that showcases `webmcp-react` hooks. Tools dynamically register and unregister as the game moves through phases (idle, playing, won/lost), and guesses can be made via keyboard or through a connected MCP agent. Includes a DevPanel for inspecting tool state and an easy-mode toggle that enables a hint tool. Install the Chrome extension to bridge tools to AI clients like Claude and Cursor.
 
 ## Quick start
 

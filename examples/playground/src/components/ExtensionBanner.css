@@ -14,9 +14,9 @@
 }
 
 .extension-banner--not-detected {
-  background: #2d1f00;
-  border-bottom: 1px solid #4d3800;
-  color: #fbbf24;
+  background: #2d0a0a;
+  border-bottom: 1px solid #5c1a1a;
+  color: #f87171;
 }
 
 .extension-banner__content {
@@ -37,7 +37,7 @@
 }
 
 .extension-banner--not-detected .extension-banner__dot {
-  background: #fbbf24;
+  background: #f87171;
 }
 
 .extension-banner a {

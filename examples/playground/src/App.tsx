@@ -1,155 +1,275 @@
-import { useState } from "react";
-import { WebMCPProvider, useMcpTool, useWebMCPStatus } from "webmcp-react";
-import { z } from "zod";
+import { useState, useCallback, useEffect } from "react";
+import { WebMCPProvider, useWebMCPStatus } from "webmcp-react";
 import { DevPanel } from "./components/DevPanel";
 import { ExtensionBanner } from "./components/ExtensionBanner";
+import { Board } from "./components/Board";
+import Keyboard from "./components/Keyboard";
+import { StartGameTool } from "./tools/StartGameTool";
+import { GuessWordTool } from "./tools/GuessWordTool";
+import { GameStatusTool } from "./tools/GameStatusTool";
+import { HintTool } from "./tools/HintTool";
+import {
+  createInitialState,
+  getLetterStatuses,
+  evaluateGuess,
+  validateHardMode,
+  MAX_GUESSES,
+  WORD_LENGTH,
+} from "./game/engine";
+import type { GameState, LetterResult, Difficulty } from "./game/engine";
+import { getRandomAnswer, isValidWord } from "./data/words";
 import "./App.css";
 
-function SearchTool() {
-  useMcpTool({
-    name: "search",
-    description: "Search the catalog",
-    input: z.object({ query: z.string() }),
-    handler: async ({ query }) => ({
-      content: [{ type: "text", text: `Results for: ${query}` }],
-    }),
-  });
-  return null;
-}
-
-function TranslateTool() {
-  const { state, execute } = useMcpTool({
-    name: "translate",
-    description: "Translate text to Spanish",
-    input: z.object({ text: z.string() }),
-    handler: async ({ text }) => {
-      await new Promise((r) => setTimeout(r, 500)); // simulate latency
-      const translations: Record<string, string> = {
-        Hello: "Hola",
-        Goodbye: "Adiós",
-        "Thank you": "Gracias",
-      };
-      const result = translations[text] ?? `[translated] ${text}`;
-      return { content: [{ type: "text", text: result }] };
-    },
-  });
-
+function StatusBadge() {
+  const { available } = useWebMCPStatus();
   return (
-    <section className="recipe-card">
-      <h3>Translate (execution state)</h3>
-      <button onClick={() => execute({ text: "Hello" })} disabled={state.isExecuting}>
-        {state.isExecuting ? "Translating..." : "Translate \"Hello\""}
-      </button>
-      {state.lastResult && state.lastResult.content[0].type === "text" && (
-        <p className="result">{state.lastResult.content[0].text}</p>
-      )}
-      {state.error && <p className="error">{state.error.message}</p>}
-    </section>
+    <span className={`status-badge ${available ? "online" : ""}`}>
+      {available ? "WebMCP Active" : "Loading..."}
+    </span>
   );
 }
 
-function DeleteUserTool() {
-  useMcpTool({
-    name: "delete_user",
-    description: "Permanently delete a user account",
-    input: z.object({ userId: z.string() }),
-    annotations: {
-      destructiveHint: true,
-      idempotentHint: true,
-    },
-    handler: async ({ userId }) => ({
-      content: [{ type: "text", text: `Deleted user ${userId}` }],
-    }),
-  });
-  return null;
-}
+function WordleGame() {
+  const [gameState, setGameState] = useState<GameState>(createInitialState);
+  const [currentInput, setCurrentInput] = useState("");
+  const [message, setMessage] = useState("");
+  const [easyMode, setEasyMode] = useState(false);
 
-function CheckoutTool() {
-  useMcpTool({
-    name: "checkout",
-    description: "Complete a purchase",
-    input: z.object({ cartId: z.string() }),
-    handler: async ({ cartId }) => {
-      await new Promise((r) => setTimeout(r, 300));
-      return { content: [{ type: "text", text: `Order placed for cart ${cartId}` }] };
-    },
-    onSuccess: (result) => console.log("[onSuccess]", result),
-    onError: (error) => console.error("[onError]", error),
-  });
-  return null;
-}
+  const handleStart = useCallback((difficulty: Difficulty) => {
+    const answer = getRandomAnswer();
+    setGameState({
+      phase: "playing",
+      targetWord: answer,
+      guesses: [],
+      difficulty,
+      easyMode: false,
+    });
+    setCurrentInput("");
+    setMessage("");
+  }, []);
 
-function CalculateTool() {
-  useMcpTool({
-    name: "calculate",
-    description: "Basic arithmetic",
-    inputSchema: {
-      type: "object",
-      properties: {
-        a: { type: "number" },
-        b: { type: "number" },
-        op: { type: "string", enum: ["add", "subtract", "multiply", "divide"] },
-      },
-      required: ["a", "b", "op"],
+  const handleGuess = useCallback(
+    (result: LetterResult[], won: boolean, lost: boolean) => {
+      setGameState((prev) => ({
+        ...prev,
+        guesses: [...prev.guesses, result],
+        phase: won ? "won" : lost ? "lost" : prev.phase,
+      }));
+      setCurrentInput("");
+      if (won) {
+        setMessage("You won!");
+      } else if (lost) {
+        setMessage(`Game over! The word was ${gameState.targetWord}.`);
+      } else {
+        setMessage("");
+      }
     },
-    handler: async (args) => {
-      const { a, b, op } = args as { a: number; b: number; op: string };
-      const result = { add: a + b, subtract: a - b, multiply: a * b, divide: a / b }[op];
-      return { content: [{ type: "text", text: String(result) }] };
+    [gameState.targetWord],
+  );
+
+  const submitGuess = useCallback(() => {
+    if (currentInput.length !== WORD_LENGTH) {
+      setMessage("Not enough letters");
+      return;
+    }
+
+    if (!isValidWord(currentInput)) {
+      setMessage("Not in word list");
+      return;
+    }
+
+    if (gameState.difficulty === "hard") {
+      const hardModeError = validateHardMode(currentInput, gameState.guesses);
+      if (hardModeError) {
+        setMessage(hardModeError);
+        return;
+      }
+    }
+
+    const result = evaluateGuess(currentInput, gameState.targetWord);
+    const won = result.every((r) => r.status === "correct");
+    const lost = !won && gameState.guesses.length + 1 >= MAX_GUESSES;
+    handleGuess(result, won, lost);
+  }, [currentInput, gameState, handleGuess]);
+
+  const handleKey = useCallback(
+    (key: string) => {
+      if (gameState.phase !== "playing") return;
+
+      if (key === "ENTER") {
+        submitGuess();
+        return;
+      }
+
+      if (key === "BACK") {
+        setCurrentInput((prev) => prev.slice(0, -1));
+        return;
+      }
+
+      if (/^[A-Z]$/.test(key) && currentInput.length < WORD_LENGTH) {
+        setCurrentInput((prev) => prev + key);
+      }
     },
-  });
-  return null;
-}
+    [gameState.phase, currentInput.length, submitGuess],
+  );
 
-function AdminTools() {
-  useMcpTool({
-    name: "admin_reset",
-    description: "Reset all user sessions (admin only)",
-    input: z.object({}),
-    handler: async () => ({
-      content: [{ type: "text", text: "All sessions reset" }],
-    }),
-  });
-  return null;
-}
+  // Physical keyboard listener
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-function StatusBar() {
-  const { available } = useWebMCPStatus();
+      if (e.key === "Enter") {
+        handleKey("ENTER");
+      } else if (e.key === "Backspace") {
+        handleKey("BACK");
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        handleKey(e.key.toUpperCase());
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleKey]);
+
+  const letterStatuses = getLetterStatuses(gameState.guesses);
+
+  const showStartTool = gameState.phase !== "playing";
+  const showPlayingTools = gameState.phase === "playing";
+  const showHintTool = showPlayingTools && easyMode;
+
   return (
-    <p>
-      Status: <code>{available ? "available" : "loading..."}</code>
-    </p>
+    <div className="game-area">
+      {/* Conditional tool registration — the key WebMCP demo */}
+      {showStartTool && <StartGameTool onStart={handleStart} />}
+      {showPlayingTools && (
+        <GuessWordTool gameState={gameState} onGuess={handleGuess} />
+      )}
+      {showPlayingTools && <GameStatusTool gameState={gameState} />}
+      {showHintTool && <HintTool gameState={gameState} />}
+
+      <header className="game-header">
+        <h1>WebMCP Wordle</h1>
+        <StatusBadge />
+      </header>
+
+      {gameState.phase === "idle" && (
+        <div className="start-screen">
+          <p className="tagline">
+            A Wordle clone powered by{" "}
+            <code>webmcp-react</code> — every game action is an MCP tool.
+          </p>
+          <p className="hint-text">
+            Open the <strong>DevPanel</strong> on the right to see tools
+            register and unregister as game state changes.
+          </p>
+          <div className="start-buttons">
+            <button
+              className="btn btn-primary"
+              onClick={() => handleStart("normal")}
+            >
+              Normal Mode
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => handleStart("hard")}
+            >
+              Hard Mode
+            </button>
+          </div>
+          <p className="mode-descriptions">
+            <strong>Normal:</strong> Guess any valid 5-letter word each turn.
+            <br />
+            <strong>Hard:</strong> Green letters must stay in the same position and yellow letters must be reused in every subsequent guess.
+          </p>
+        </div>
+      )}
+
+      {gameState.phase === "playing" && (
+        <>
+          <div className="game-info">
+            <span className="guess-counter">
+              {gameState.guesses.length} / {MAX_GUESSES}
+            </span>
+            {gameState.difficulty === "hard" && (
+              <span className="hard-badge">HARD</span>
+            )}
+          </div>
+          <Board
+            guesses={gameState.guesses}
+            currentInput={currentInput}
+            phase={gameState.phase}
+          />
+          {message && <div className="game-message">{message}</div>}
+          <Keyboard
+            letterStatuses={letterStatuses}
+            onKey={handleKey}
+            disabled={false}
+          />
+        </>
+      )}
+
+      {(gameState.phase === "won" || gameState.phase === "lost") && (
+        <>
+          <Board
+            guesses={gameState.guesses}
+            currentInput=""
+            phase={gameState.phase}
+          />
+          <div className="game-over">
+            {gameState.phase === "won" ? (
+              <p className="game-over-text win">
+                You guessed it in {gameState.guesses.length} attempt
+                {gameState.guesses.length !== 1 ? "s" : ""}!
+              </p>
+            ) : (
+              <p className="game-over-text lose">
+                The word was <strong>{gameState.targetWord}</strong>.
+              </p>
+            )}
+            <div className="start-buttons">
+              <button
+                className="btn btn-primary"
+                onClick={() => handleStart("normal")}
+              >
+                Play Again (Normal)
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={() => handleStart("hard")}
+              >
+                Play Again (Hard)
+              </button>
+            </div>
+            <p className="mode-descriptions">
+              <strong>Normal:</strong> Guess any valid 5-letter word each turn.
+              <br />
+              <strong>Hard:</strong> Green letters must stay in the same position and yellow letters must be reused in every subsequent guess.
+            </p>
+          </div>
+        </>
+      )}
+
+      <label className="easy-mode-toggle">
+        <input
+          type="checkbox"
+          checked={easyMode}
+          onChange={(e) => setEasyMode(e.target.checked)}
+        />
+        Easy mode (enables hint tool)
+      </label>
+    </div>
   );
 }
 
 export default function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
-
   return (
-    <WebMCPProvider name="playground" version="1.0">
-      <ExtensionBanner />
-      <div className="app">
-        <header className="app-header">
-          <h1>webmcp-react playground</h1>
-          <StatusBar />
-        </header>
-
-        <SearchTool />
-        <TranslateTool />
-        <DeleteUserTool />
-        <CheckoutTool />
-        <CalculateTool />
-
-        <section className="recipe-card">
-          <h3>Dynamic tools</h3>
-          <label>
-            <input type="checkbox" checked={isAdmin} onChange={(e) => setIsAdmin(e.target.checked)} />
-            Admin mode (toggle to register/unregister admin_reset tool)
-          </label>
-        </section>
-        {isAdmin && <AdminTools />}
-
-        <DevPanel />
+    <WebMCPProvider name="webmcp-wordle" version="1.0">
+      <div className="app-shell">
+        <ExtensionBanner />
+        <div className="app-layout">
+          <WordleGame />
+          <DevPanel />
+        </div>
       </div>
     </WebMCPProvider>
   );
