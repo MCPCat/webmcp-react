@@ -1,15 +1,16 @@
 import { build, context } from "esbuild";
-import { cpSync, mkdirSync } from "fs";
+import { cpSync, mkdirSync, rmSync } from "fs";
 
 const isWatch = process.argv.includes("--watch");
+const isExtensionOnly = process.argv.includes("--extension-only");
 
 const shared = {
   bundle: true,
-  sourcemap: true,
+  sourcemap: !isExtensionOnly,
   logLevel: "info",
 };
 
-const configs = [
+const browserConfigs = [
   {
     ...shared,
     entryPoints: ["src/content-main.ts"],
@@ -42,6 +43,9 @@ const configs = [
     platform: "browser",
     target: "chrome120",
   },
+];
+
+const serverConfigs = [
   {
     ...shared,
     entryPoints: ["src/mcp-server/index.ts"],
@@ -64,6 +68,12 @@ const configs = [
   },
 ];
 
+const configs = isExtensionOnly ? browserConfigs : [...browserConfigs, ...serverConfigs];
+
+function cleanDist() {
+  rmSync("dist", { recursive: true, force: true });
+}
+
 function copyStaticFiles() {
   mkdirSync("dist", { recursive: true });
   cpSync("manifest.json", "dist/manifest.json");
@@ -78,6 +88,7 @@ if (isWatch) {
   await Promise.all(contexts.map((c) => c.watch()));
   console.log("Watching for changes...");
 } else {
+  cleanDist();
   await Promise.all(configs.map((c) => build(c)));
   copyStaticFiles();
 }

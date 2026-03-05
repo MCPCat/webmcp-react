@@ -1,5 +1,7 @@
 import type { PageMessage, RuntimeMessage } from "./types";
 
+const DEBUG = false;
+
 console.log("[WebMCP Bridge] content-isolated loaded");
 
 // Forward page messages to background
@@ -38,14 +40,14 @@ chrome.runtime.onMessage.addListener(
             toolName: message.toolName,
             argsJson: message.argsJson,
           } satisfies PageMessage,
-          "*",
+          window.location.origin,
         );
         sendResponse({ ok: true });
         break;
       case "REQUEST_TOOLS":
         window.postMessage(
           { type: "WEBMCP_REQUEST_TOOLS" } satisfies PageMessage,
-          "*",
+          window.location.origin,
         );
         sendResponse({ ok: true });
         break;
