@@ -52,6 +52,16 @@ export default function App() {
 
 That's it. The tool is registered on `navigator.modelContext` and can be called by WebMCP-compatible agents.
 
+### Using an AI agent?
+
+This repo ships with [agent skills](./skills) that can set up webmcp-react and scaffold tools for you. Install them with the [skills CLI](https://skills.sh):
+
+```bash
+npx skills add MCPCat/webmcp-react
+```
+
+Works with Cursor, Claude Code, GitHub Copilot, Cline, and [18+ other agents](https://vercel.com/docs/agent-resources/skills).
+
 ## How it works
 
 [WebMCP](https://www.w3.org/community/webmcp/) is an emerging web standard that adds `navigator.modelContext` to the browser, an API that lets any page expose typed, callable tools to AI agents. Native browser support is still experimental and may evolve quickly. Chrome recently [released it in Early Preview](https://developer.chrome.com/blog/webmcp-epp).
