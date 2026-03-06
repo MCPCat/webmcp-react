@@ -54,7 +54,6 @@ describe("WebMCPProvider availability", () => {
     const native = {
       registerTool() {},
       unregisterTool() {},
-      clearContext() {},
     };
     Object.defineProperty(navigator, "modelContext", {
       value: native,
@@ -101,7 +100,6 @@ describe("polyfill lifecycle", () => {
     const native = {
       registerTool() {},
       unregisterTool() {},
-      clearContext() {},
     };
     Object.defineProperty(navigator, "modelContext", {
       value: native,
@@ -147,7 +145,6 @@ describe("polyfill lifecycle", () => {
     const native = {
       registerTool() {},
       unregisterTool() {},
-      clearContext() {},
     };
     Object.defineProperty(navigator, "modelContext", {
       value: native,

@@ -90,23 +90,6 @@ describe("createRegistry", () => {
     expect(() => registry.unregisterTool("nonexistent")).not.toThrow();
   });
 
-  it("clearContext empties all tools", () => {
-    const registry = createRegistry();
-    registry.registerTool(makeTool({ name: "a" }));
-    registry.registerTool(makeTool({ name: "b" }));
-    registry.clearContext();
-    expect(registry.getTools().size).toBe(0);
-  });
-
-  it("clearContext no-ops when already empty", async () => {
-    const registry = createRegistry();
-    const cb = vi.fn();
-    registry.onToolsChanged(cb);
-    registry.clearContext();
-    await Promise.resolve();
-    expect(cb).not.toHaveBeenCalled();
-  });
-
   it("batches rapid registrations into one notification", async () => {
     const registry = createRegistry();
     const cb = vi.fn();

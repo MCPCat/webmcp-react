@@ -139,7 +139,6 @@ export interface WebMCPStatus {
 export interface ModelContext {
   registerTool(tool: ToolDescriptor): void;
   unregisterTool(name: string): void;
-  clearContext(): void;
 }
 
 export interface ModelContextTestingToolInfo {
