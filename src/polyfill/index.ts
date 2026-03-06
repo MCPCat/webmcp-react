@@ -28,7 +28,6 @@ export function installPolyfill(): void {
   const modelContext: PolyfillModelContext = {
     registerTool: registry.registerTool,
     unregisterTool: registry.unregisterTool,
-    clearContext: registry.clearContext,
     __isWebMCPPolyfill: true,
   };
 

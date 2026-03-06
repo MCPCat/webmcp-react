@@ -35,7 +35,6 @@ describe("installPolyfill / cleanupPolyfill", () => {
     const native = {
       registerTool() {},
       unregisterTool() {},
-      clearContext() {},
     };
     Object.defineProperty(navigator, "modelContext", {
       value: native,
@@ -73,7 +72,6 @@ describe("installPolyfill / cleanupPolyfill", () => {
     const original = {
       registerTool() {},
       unregisterTool() {},
-      clearContext() {},
     };
     Object.defineProperty(navigator, "modelContext", {
       value: original,

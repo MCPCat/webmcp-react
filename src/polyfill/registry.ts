@@ -3,7 +3,6 @@ import type { ToolDescriptor } from "../types";
 export interface RegistryInternal {
   registerTool(tool: ToolDescriptor): void;
   unregisterTool(name: string): void;
-  clearContext(): void;
   getTools(): ReadonlyMap<string, ToolDescriptor>;
   onToolsChanged(callback: (() => void) | null): void;
 }
@@ -46,13 +45,6 @@ export function createRegistry(): RegistryInternal {
 
     unregisterTool(name: string): void {
       if (tools.delete(name)) {
-        scheduleNotification();
-      }
-    },
-
-    clearContext(): void {
-      if (tools.size > 0) {
-        tools.clear();
         scheduleNotification();
       }
     },
