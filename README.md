@@ -70,7 +70,7 @@ Works with Cursor, Claude Code, GitHub Copilot, Cline, and [18+ other agents](ht
 
 ## How it works
 
-[WebMCP](https://www.w3.org/community/webmcp/) is an emerging web standard that adds `navigator.modelContext` to the browser, an API that lets any page expose typed, callable tools to AI agents. Native browser support is still experimental and may evolve quickly. Chrome recently [released it in Early Preview](https://developer.chrome.com/blog/webmcp-epp).
+[WebMCP](https://github.com/webmachinelearning/webmcp) is an emerging web standard that adds `navigator.modelContext` to the browser, an API that lets any page expose typed, callable tools to AI agents. Native browser support is still experimental and may evolve quickly. Chrome recently [released it in Early Preview](https://developer.chrome.com/blog/webmcp-epp).
 
 This library provides React bindings for that API. `<WebMCPProvider>` installs a polyfill (skipped when native support exists), and each `useMcpTool` call registers a tool that agents can discover and execute.
 
