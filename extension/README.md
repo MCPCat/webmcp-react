@@ -28,12 +28,9 @@ pnpm build
 
 ### 2. Install in Chrome
 
-1. Open `chrome://extensions/`
-2. Enable **Developer mode** (top right)
-3. Click **Load unpacked**
-4. Select the `extension/dist/` directory
+Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/webmcp-bridge/chgjbookknohehmaocfijekhaocaanaf).
 
-I'll try to release it on the Chrome Webstore so it's easier to install.
+For development, you can also load from source — see [Development](#development) below.
 
 ### 3. Configure your MCP client
 
@@ -90,6 +87,8 @@ Tools from different tabs are namespaced as `tab-{tabId}:{toolName}` to avoid co
 pnpm dev
 pnpm typecheck
 ```
+
+To load from source, build the extension (`pnpm build`), then open `chrome://extensions/`, enable **Developer mode**, click **Load unpacked**, and select the `extension/dist/` directory.
 
 After rebuilding, click the reload button on `chrome://extensions/` to pick up changes.
 

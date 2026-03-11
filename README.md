@@ -78,9 +78,10 @@ This library provides React bindings for that API. `<WebMCPProvider>` installs a
 
 ## Connect to AI clients
 
-Desktop MCP clients like Claude Code and Cursor can't access `navigator.modelContext` directly. This repo includes a [Chrome extension](./extension) that connects your registered tools to any MCP client.
+Desktop MCP clients like Claude Code and Cursor can't access `navigator.modelContext` directly. The [WebMCP Bridge extension](https://chromewebstore.google.com/detail/webmcp-bridge/chgjbookknohehmaocfijekhaocaanaf) connects your registered tools to any MCP client.
 
-See the [extension setup guide](./extension/README.md) for build, install, and configuration instructions.
+1. Install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/webmcp-bridge/chgjbookknohehmaocfijekhaocaanaf)
+2. Configure your MCP client — see the [extension setup guide](./extension/README.md) for details
 
 Once Chrome supports this bridging natively, I'll deprecate the extension.
 
