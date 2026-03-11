@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import "./ExtensionBanner.css";
 
-// TODO: Replace with actual Chrome Web Store URL once published
 const CHROME_STORE_URL =
-  "https://chromewebstore.google.com/detail/webmcp-bridge/EXTENSION_ID_HERE";
+  "https://chromewebstore.google.com/detail/webmcp-bridge/chgjbookknohehmaocfijekhaocaanaf";
 
 const DETECTION_TIMEOUT = 2000;
 
@@ -57,11 +56,11 @@ export function ExtensionBanner() {
       <div className="extension-banner__content">
         <span className="extension-banner__dot" />
         <span>
-          <strong>Not connected</strong> — the{" "}
+          <strong>Not connected</strong> — install or activate the{" "}
           <a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer">
             WebMCP Bridge extension
           </a>{" "}
-          is not detected. Install it to expose your tools to AI clients.
+          to expose your tools to AI clients.
         </span>
       </div>
       <button
