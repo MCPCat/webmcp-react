@@ -4,6 +4,7 @@ export type {
   CallToolResult,
   McpToolConfigJsonSchema,
   McpToolConfigZod,
+  RegisterToolOptions,
   ToolAnnotations,
   ToolExecutionState,
   UseMcpToolReturn,
