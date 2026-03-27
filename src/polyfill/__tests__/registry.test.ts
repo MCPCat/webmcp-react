@@ -124,4 +124,95 @@ describe("createRegistry", () => {
     const stored = registry.getTools().get("test_tool");
     expect(stored?.description).toBe("A test tool");
   });
+
+  describe("AbortSignal support", () => {
+    it("removes tool when abort signal fires", async () => {
+      const registry = createRegistry();
+      const cb = vi.fn();
+      registry.onToolsChanged(cb);
+
+      const controller = new AbortController();
+      registry.registerTool(makeTool(), { signal: controller.signal });
+      expect(registry.getTools().has("test_tool")).toBe(true);
+
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      controller.abort();
+      expect(registry.getTools().has("test_tool")).toBe(false);
+
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(2);
+    });
+
+    it("skips registration when signal is already aborted", () => {
+      const registry = createRegistry();
+      registry.registerTool(makeTool(), { signal: AbortSignal.abort() });
+      expect(registry.getTools().has("test_tool")).toBe(false);
+    });
+
+    it("abort after manual unregisterTool is a safe no-op", async () => {
+      const registry = createRegistry();
+      const cb = vi.fn();
+      registry.onToolsChanged(cb);
+
+      const controller = new AbortController();
+      registry.registerTool(makeTool(), { signal: controller.signal });
+
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      registry.unregisterTool("test_tool");
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(2);
+
+      controller.abort();
+      await Promise.resolve();
+      // no extra notification — tool was already removed
+      expect(cb).toHaveBeenCalledTimes(2);
+    });
+
+    it("fires notification via microtask when abort removes a tool", async () => {
+      const registry = createRegistry();
+      const cb = vi.fn();
+      registry.onToolsChanged(cb);
+
+      const controller = new AbortController();
+      registry.registerTool(makeTool(), { signal: controller.signal });
+      await Promise.resolve();
+
+      controller.abort();
+      // notification not yet fired (queued as microtask)
+      expect(cb).toHaveBeenCalledTimes(1);
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(2);
+    });
+
+    it("stale abort does not remove a same-name re-registration", async () => {
+      const registry = createRegistry();
+      const cb = vi.fn();
+      registry.onToolsChanged(cb);
+
+      const controller1 = new AbortController();
+      registry.registerTool(makeTool(), { signal: controller1.signal });
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      // Unregister, then re-register with a new signal
+      registry.unregisterTool("test_tool");
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(2);
+
+      const controller2 = new AbortController();
+      registry.registerTool(makeTool(), { signal: controller2.signal });
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(3);
+
+      // Abort the OLD signal — should NOT remove the new registration
+      controller1.abort();
+      await Promise.resolve();
+      expect(registry.getTools().has("test_tool")).toBe(true);
+      expect(cb).toHaveBeenCalledTimes(3);
+    });
+  });
 });

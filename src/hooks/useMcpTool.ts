@@ -223,8 +223,10 @@ export function useMcpTool(
       },
     };
 
+    const controller = new AbortController();
+
     try {
-      mc.registerTool(descriptor);
+      mc.registerTool(descriptor, { signal: controller.signal });
     } catch (err) {
       warnOnce(
         `register-${cfg.name}`,
@@ -241,7 +243,8 @@ export function useMcpTool(
         return;
       }
       TOOL_OWNER_BY_NAME.delete(cfg.name);
-      mc.unregisterTool(cfg.name);
+      mc.unregisterTool?.(cfg.name);
+      controller.abort();
     };
   }, [
     ctx.available,

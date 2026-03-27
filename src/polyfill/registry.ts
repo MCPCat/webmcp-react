@@ -1,7 +1,7 @@
-import type { ToolDescriptor } from "../types";
+import type { RegisterToolOptions, ToolDescriptor } from "../types";
 
 export interface RegistryInternal {
-  registerTool(tool: ToolDescriptor): void;
+  registerTool(tool: ToolDescriptor, options?: RegisterToolOptions): void;
   unregisterTool(name: string): void;
   getTools(): ReadonlyMap<string, ToolDescriptor>;
   onToolsChanged(callback: (() => void) | null): void;
@@ -22,7 +22,7 @@ export function createRegistry(): RegistryInternal {
   }
 
   return {
-    registerTool(tool: ToolDescriptor): void {
+    registerTool(tool: ToolDescriptor, options?: RegisterToolOptions): void {
       if (typeof tool.name !== "string" || tool.name === "") {
         throw new DOMException("Tool name must be a non-empty string", "InvalidStateError");
       }
@@ -36,11 +36,29 @@ export function createRegistry(): RegistryInternal {
         throw new DOMException(`Tool "${tool.name}" is already registered`, "InvalidStateError");
       }
 
+      if (options?.signal?.aborted) {
+        return;
+      }
+
       tools.set(tool.name, {
         ...tool,
         inputSchema: tool.inputSchema ?? { type: "object", properties: {} },
       });
       scheduleNotification();
+
+      if (options?.signal) {
+        const name = tool.name;
+        const stored = tools.get(name);
+        options.signal.addEventListener(
+          "abort",
+          () => {
+            if (tools.get(name) === stored && tools.delete(name)) {
+              scheduleNotification();
+            }
+          },
+          { once: true },
+        );
+      }
     },
 
     unregisterTool(name: string): void {
