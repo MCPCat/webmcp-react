@@ -1090,3 +1090,140 @@ describe("provider warning", () => {
     );
   });
 });
+
+// ─── Signal-only native API (Chrome 148+) ────────────────────────
+
+describe("signal-only native API (no unregisterTool)", () => {
+  type ToolEntry = { name: string; abortCleanup: () => void };
+
+  function installSignalOnlyNative() {
+    const registered: ToolEntry[] = [];
+
+    const native = {
+      registerTool(
+        tool: { name: string; [key: string]: unknown },
+        opts?: { signal?: AbortSignal },
+      ) {
+        const entry: ToolEntry = { name: tool.name, abortCleanup: () => {} };
+        registered.push(entry);
+        if (opts?.signal) {
+          const handler = () => {
+            const idx = registered.findIndex((t) => t.name === tool.name);
+            if (idx !== -1) registered.splice(idx, 1);
+          };
+          opts.signal.addEventListener("abort", handler, { once: true });
+          entry.abortCleanup = () => opts.signal?.removeEventListener("abort", handler);
+        }
+      },
+      // no unregisterTool — simulates Chrome 148+
+    };
+
+    Object.defineProperty(navigator, "modelContext", {
+      value: native,
+      configurable: true,
+      enumerable: true,
+      writable: true,
+    });
+
+    return registered;
+  }
+
+  function deleteModelContext() {
+    const desc = Object.getOwnPropertyDescriptor(navigator, "modelContext");
+    if (desc) {
+      Object.defineProperty(navigator, "modelContext", {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+      delete navigator.modelContext;
+    }
+  }
+
+  afterEach(() => {
+    deleteModelContext();
+  });
+
+  it("registers and unregisters via abort on mount/unmount", async () => {
+    const registered = installSignalOnlyNative();
+
+    const { unmount } = render(
+      <ToolComponent
+        config={{
+          name: "greet",
+          description: "Say hello",
+          handler: async () => OK_RESULT,
+        }}
+      />,
+    );
+
+    await act(async () => {});
+    expect(registered.some((t) => t.name === "greet")).toBe(true);
+
+    unmount();
+    await act(async () => {});
+    expect(registered.some((t) => t.name === "greet")).toBe(false);
+  });
+
+  it("handles StrictMode double-mount with signal-only API", async () => {
+    const registered = installSignalOnlyNative();
+
+    const { unmount } = render(
+      <StrictMode>
+        <ToolComponent
+          config={{
+            name: "greet",
+            description: "Say hello",
+            handler: async () => OK_RESULT,
+          }}
+        />
+      </StrictMode>,
+    );
+
+    await act(async () => {});
+    const greetTools = registered.filter((t) => t.name === "greet");
+    expect(greetTools.length).toBe(1);
+
+    unmount();
+    await act(async () => {});
+    expect(registered.some((t) => t.name === "greet")).toBe(false);
+  });
+
+  it("re-registers with fresh signal on prop change", async () => {
+    const registered = installSignalOnlyNative();
+    const registerSpy = vi.spyOn(
+      navigator.modelContext as NonNullable<typeof navigator.modelContext>,
+      "registerTool",
+    );
+
+    const { rerender } = render(
+      <ToolComponent
+        config={{
+          name: "greet",
+          description: "Say hello",
+          handler: async () => OK_RESULT,
+        }}
+      />,
+    );
+
+    await act(async () => {});
+    expect(registerSpy).toHaveBeenCalledTimes(1);
+    expect(registered.some((t) => t.name === "greet")).toBe(true);
+
+    // Change description to trigger re-registration
+    rerender(
+      <ToolComponent
+        config={{
+          name: "greet",
+          description: "Say hello v2",
+          handler: async () => OK_RESULT,
+        }}
+      />,
+    );
+
+    await act(async () => {});
+    expect(registerSpy).toHaveBeenCalledTimes(2);
+    // Old signal aborted old entry, new entry registered
+    expect(registered.filter((t) => t.name === "greet").length).toBe(1);
+  });
+});

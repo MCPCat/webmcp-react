@@ -78,6 +78,34 @@ describe("WebMCPProvider availability", () => {
       deleteNativeModelContext();
     }
   });
+
+  it("available is true when native API lacks unregisterTool (Chrome 148+)", async () => {
+    const native = {
+      registerTool() {},
+      // no unregisterTool — simulates Chrome 148+
+    };
+    Object.defineProperty(navigator, "modelContext", {
+      value: native,
+      configurable: true,
+      enumerable: true,
+      writable: false,
+    });
+
+    try {
+      const { getByTestId } = render(
+        <WebMCPProvider name="test" version="1.0">
+          <StatusDisplay />
+        </WebMCPProvider>,
+      );
+
+      await waitFor(() => {
+        expect(getByTestId("status")).toHaveTextContent("yes");
+      });
+      expect(navigator.modelContext).toBe(native);
+    } finally {
+      deleteNativeModelContext();
+    }
+  });
 });
 
 // ─── Polyfill lifecycle ───────────────────────────────────────────
