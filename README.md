@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/mcpcat-webmcp-react-badge.png)](https://mseep.ai/app/mcpcat-webmcp-react)
+
 # webmcp-react
 
 React hooks for exposing typed tools on `navigator.modelContext`.
